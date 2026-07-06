@@ -9,11 +9,11 @@ The cute generic black cat (or any pet-mascot rendering) produced in early Fable
 WESTCAT Familiar v0 is a **stateful command-layer familiar**, not a pet, buddy avatar, or decorative mascot.
 
 - The familiar is the interface (Familiar First).
-- It is implemented exclusively with React JSX + div/span + CSS (pseudo-elements, transforms, keyframes, state/mode class names, data attributes).
+- The creature body is rendered from existing canonical raster character frame assets (transparent RGBA PNG files) stored in `public/assets/familiar/canonical/`.
 - **SVG is forbidden** for the familiar visual in v0 (no inline `<svg>`, no `.svg` asset files, no SVG masks/paths for the creature).
-- No Lottie, no canvas (unless justified later), no external image assets for the familiar itself.
-- Old PySide / WestCat Overlay art is **source lineage only** — conceptual history, not to be ported or used as visual reference for the on-screen familiar.
-- No stock animal icons, emoji, generic black cat silhouettes, cute round cartoon eyes, collars, or pet-avatar design language.
+- No Lottie, no canvas (unless justified later).
+- The character body frame is driven dynamically by a typed asset manifest (`familiarFrameManifest.ts`).
+- No stock animal icons, emoji, generic cartoon cat silhouettes, collars, or pet-avatar design language.
 
 ## Required DOM Layer Structure (v0)
 
@@ -22,16 +22,13 @@ The familiar root renders these explicit layers (class names must be stable for 
 - `familiar-shell` — receives all `state-*` and `mode-*` classes
 - `familiar-aura`
 - `familiar-shadow`
-- `familiar-core`
-- `familiar-fin-left` / `familiar-fin-right`
-- `familiar-eye-left` / `familiar-eye-right`
-- `familiar-gaze`
-- `familiar-tail`
+- `familiar-character-frame-wrap`
+- `familiar-character-frame` (renders canonical character frame `<img>` with `draggable="false"`)
 - `familiar-glyph-ring`
 - `familiar-glyph`
 - `familiar-status`
 
-Additional inner accents (e.g. `familiar-band`) may exist for mode color but must not evoke collars or pet features.
+Additional inner accents may exist for mode color but must not evoke collars or pet features.
 
 ## State → Visual Mapping (Motion Means State)
 
@@ -103,3 +100,8 @@ To align TypeScript state declarations with visual mapping and prevent state typ
 - `reacting` -> refactored to `alert`
 
 These state changes are verified typecheck-safe and matching visual CSS classes.
+
+## Frame Character Identity Restore
+Conceptual wedges and abstract bodies are rejected. The familiar has been successfully restored to a canonical asset-backed character identity using PNG frame assets from `west_cat_overlay/assets/source/transparent/`.
+- All states are dynamically mapped to canonical frames via `familiarFrameManifest.ts`.
+- Interaction features (blinking, breathing, auras, command glyph ring) are implemented as layers around the raster frame image.

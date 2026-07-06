@@ -33,6 +33,7 @@ import { FAMILIAR_STATES } from '../../domain/familiarStateMachine'
 import { useFamiliarAnimation } from './FamiliarAnimator'
 import { STATE_VISUALS } from './states'
 import { continuityFirewall } from '../../engines/continuityFirewall'
+import { familiarFrameManifest } from '../../data/familiarFrameManifest'
 import type { PanelId } from '../../types'
 
 export const SHELL_WIDTH = 132
@@ -67,6 +68,11 @@ export function Familiar({
   const { anim, blinking, reduced } = useFamiliarAnimation(stateId, mode.familiar.poseClass)
   const visual = STATE_VISUALS[stateId]
   const stateDef = FAMILIAR_STATES[stateId]
+  
+  let frameSrc = familiarFrameManifest.stateToFrameMapping[stateId] || familiarFrameManifest.fallbackFrame
+  if (stateId !== 'sleeping' && blinking) {
+    frameSrc = familiarFrameManifest.copiedAssetPaths.blink || frameSrc
+  }
 
   const drag = useRef<DragState | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
@@ -188,23 +194,19 @@ export function Familiar({
         >
           <div className="familiar-aura" aria-hidden="true" />
           <div className="familiar-shadow" aria-hidden="true" />
-          <div className="familiar-core" aria-hidden="true">
-            <div className="familiar-fin familiar-fin-left" />
-            <div className="familiar-fin familiar-fin-right" />
-            <div className="familiar-eye familiar-eye-left">
-              <div className="familiar-gaze" />
-            </div>
-            <div className="familiar-eye familiar-eye-right">
-              <div className="familiar-gaze" />
-            </div>
-            <div className="familiar-glyph-ring">
-              <div className="familiar-glyph" />
-              <div className="familiar-glyph" />
-              <div className="familiar-glyph" />
-            </div>
-            <div className="familiar-band" />
+          <div className="familiar-character-frame-wrap" aria-hidden="true">
+            <img
+              className="familiar-character-frame"
+              src={frameSrc}
+              alt={stateDef.label}
+              draggable={false}
+            />
           </div>
-          <div className="familiar-tail" aria-hidden="true" />
+          <div className="familiar-glyph-ring" aria-hidden="true">
+            <div className="familiar-glyph" />
+            <div className="familiar-glyph" />
+            <div className="familiar-glyph" />
+          </div>
         </div>
         <div className="familiar-status">
           <span className="status-mode" style={{ color: `var(${mode.accentVar})` }}>

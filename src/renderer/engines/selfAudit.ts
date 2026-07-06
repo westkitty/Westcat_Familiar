@@ -23,6 +23,7 @@ import { COMMANDS, getSessionRouteLog } from '../domain/commandRouter'
 import { MODE_LIST } from '../domain/modeManager'
 import { useAttentionStore } from '../state/useAttentionStore'
 import { persistence, KEYS } from '../state/persistence'
+import { familiarFrameManifest } from '../data/familiarFrameManifest'
 import type { Evidenced } from '../types/evidence'
 import type { AuditCheck, AuditReport } from '../types/audit'
 import { APP_VERSION, FABLE_SESSION_BUDGET } from '../../shared/constants'
@@ -460,6 +461,53 @@ function checkMotionMeansState(): AuditCheck {
   }
 }
 
+function checkPositiveCharacterIdentity(): AuditCheck {
+  const problems: string[] = []
+  
+  if (!familiarFrameManifest) {
+    problems.push('familiarFrameManifest is missing')
+  } else {
+    if (familiarFrameManifest.evidenceTier !== 'verified') {
+      problems.push('manifest evidenceTier is not verified')
+    }
+    if (familiarFrameManifest.canonicalAssetRoot !== 'assets/familiar/canonical') {
+      problems.push(`manifest canonicalAssetRoot is invalid: '${familiarFrameManifest.canonicalAssetRoot}'`)
+    }
+  }
+
+  const root = document.querySelector('.familiar-root')
+  const wrap = document.querySelector('.familiar-character-frame-wrap')
+  const frame = document.querySelector('.familiar-character-frame') as HTMLImageElement | null
+  const glyphs = document.querySelector('.familiar-glyph-ring')
+  const status = document.querySelector('.familiar-status')
+
+  if (!root) problems.push('Familiar root element missing')
+  if (!wrap) problems.push('Familiar character frame wrap missing')
+  if (!glyphs) problems.push('Familiar glyph ring missing')
+  if (!status) problems.push('Familiar status panel missing')
+  
+  if (!frame) {
+    problems.push('Familiar character frame image missing')
+  } else {
+    const src = frame.src || ''
+    if (!src.includes('assets/familiar/canonical/')) {
+      problems.push(`Familiar character image src does not use canonical frames path: '${src}'`)
+    }
+  }
+
+  const ok = problems.length === 0
+  return {
+    id: 'positive-character-identity',
+    law: 'Visual Identity Lock — v0',
+    title: 'Frame-backed character identity verified',
+    status: ok ? 'pass' : 'fail',
+    detail: ok
+      ? 'Familiar body is successfully bound to the canonical frame manifest and renders correct existing assets.'
+      : `Audit issues: ${problems.join('; ')}`,
+    evidenceTier: 'verified'
+  }
+}
+
 export function runSelfAudit(): AuditReport {
   const checks: AuditCheck[] = [
     checkFamiliarFirst(),
@@ -483,7 +531,8 @@ export function runSelfAudit(): AuditReport {
     checkVisualMapping(),
     checkReducedMotionCss(),
     checkDexterNotCute(),
-    checkMotionMeansState()
+    checkMotionMeansState(),
+    checkPositiveCharacterIdentity()
   ]
   const report: AuditReport = {
     id: `audit-${Date.now().toString(36)}`,

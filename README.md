@@ -10,26 +10,26 @@ The animated familiar is always present and primary. Drawers, Dexter Inspect, St
 
 ## Visual Identity (Locked for v0)
 
-**WESTCAT Familiar is not a cute mascot.**
+**WESTCAT Familiar is not an invented cute mascot.**
 
 - It is a **stateful command-layer familiar**.
-- v0 familiar is built from **DOM + CSS only** (React JSX layers + styles).
+- The creature body is rendered from existing canonical raster character frame assets stored in `public/assets/familiar/canonical/`.
 - **No SVG familiar art in v0** (inline or asset).
-- No pet collars, round cartoon eyes, generic black-cat avatars, or decorative animal illustration.
-- Old PySide assets are source lineage, not runtime visuals.
+- The character body frame is driven dynamically by a typed asset manifest (`familiarFrameManifest.ts`).
 - Motion communicates **state** (Motion Means State). Mode modifies visual behavior and emphasis.
 
 ### Required HTML/CSS Layers
-Developers must preserve the exact 12 DOM layers inside the familiar component:
+Developers must preserve the exact DOM layers inside the familiar component:
 - `familiar-shell` (receives state and mode classes)
-- `familiar-aura`, `familiar-shadow`, `familiar-core`
-- `familiar-fin-left`, `familiar-fin-right`
-- `familiar-eye-left`, `familiar-eye-right`
-- `familiar-gaze`, `familiar-tail`
-- `familiar-glyph-ring`, `familiar-glyph`
+- `familiar-aura`
+- `familiar-shadow`
+- `familiar-character-frame-wrap`
+- `familiar-character-frame`
+- `familiar-glyph-ring`
+- `familiar-glyph`
 - `familiar-status`
 
-See [VISUAL_IDENTITY_LOCK.md](file:///Users/andrew/Westcat_Familiar/docs/VISUAL_IDENTITY_LOCK.md) for the full locked spec, forbidden patterns, and state/mode mappings.
+See [VISUAL_IDENTITY_LOCK.md](file:///Users/andrew/Westcat_Familiar/docs/VISUAL_IDENTITY_LOCK.md) and [CANONICAL_CHARACTER_IDENTITY.md](file:///Users/andrew/Westcat_Familiar/docs/CANONICAL_CHARACTER_IDENTITY.md) for the full specs.
 
 ## Core Laws (Familiar Constitution)
 

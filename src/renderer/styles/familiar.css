@@ -78,6 +78,26 @@
 .familiar-shell[data-aura='dim'] .familiar-shadow { opacity: 0.3; }
 .familiar-shell[data-aura='high'] .familiar-shadow { transform: translateY(3px); }
 
+/* ---------- character-frame — the raster image body ---------- */
+
+.familiar-character-frame-wrap {
+  position: absolute;
+  inset: 10px 10px 24px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: transform 300ms ease, filter 300ms ease;
+  transform-origin: 50% 90%;
+}
+
+.familiar-character-frame {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 /* ---------- core — the dark wedge body ---------- */
 
 .familiar-core {
@@ -280,54 +300,63 @@
    ================================================================== */
 
 /* idle: slow quiet breathing, neutral gaze */
-.state-idle .familiar-core {
+.state-idle .familiar-core,
+.state-idle .familiar-character-frame-wrap {
   animation: core-breathe 4.6s ease-in-out infinite;
 }
 
 /* watching: slight forward tilt; eyes already narrowed+bright via map */
-.state-watching .familiar-core {
+.state-watching .familiar-core,
+.state-watching .familiar-character-frame-wrap {
   transform: translateY(-2px) rotate(-1deg);
   animation: core-breathe 3.2s ease-in-out infinite;
 }
 
 /* thinking: gaze lowered (map) + core pulse handled by data-aura */
-.state-thinking .familiar-core {
+.state-thinking .familiar-core,
+.state-thinking .familiar-character-frame-wrap {
   transform: rotate(-2deg);
 }
 
 /* working: firmer posture, glyph activity via data-glyphs */
-.state-working .familiar-core {
+.state-working .familiar-core,
+.state-working .familiar-character-frame-wrap {
   transform: translateY(-1px) scaleY(1.02);
 }
 
 /* judging: stillness — no breathing at all, low aura, slit eyes */
-.state-judging .familiar-core {
+.state-judging .familiar-core,
+.state-judging .familiar-character-frame-wrap {
   transform: translateY(-1px);
   animation: none;
 }
 
 /* annoyed: sharper tilt + one short restrained twitch */
-.state-annoyed .familiar-core {
+.state-annoyed .familiar-core,
+.state-annoyed .familiar-character-frame-wrap {
   transform: rotate(-4deg);
   animation: core-twitch 0.34s ease-in-out 1;
 }
 
 /* alert: raised fins, strong aura (map), lifted posture */
-.state-alert .familiar-core {
+.state-alert .familiar-core,
+.state-alert .familiar-character-frame-wrap {
   transform: translateY(-4px);
 }
 .state-alert .familiar-fin-left { transform: rotate(-10deg) translateY(-2px); }
 .state-alert .familiar-fin-right { transform: rotate(10deg) translateY(-2px); }
 
 /* blocked: dimmed body, locked glyphs (map), motion suppressed */
-.state-blocked .familiar-core {
+.state-blocked .familiar-core,
+.state-blocked .familiar-character-frame-wrap {
   filter: brightness(0.55) saturate(0.6);
   animation: none;
 }
 .state-blocked .familiar-tail { opacity: 0.4; }
 
 /* sleeping: lowered posture, dim aura, eyes closed (map) */
-.state-sleeping .familiar-core {
+.state-sleeping .familiar-core,
+.state-sleeping .familiar-character-frame-wrap {
   transform: translateY(7px) scaleY(0.86);
   animation: core-breathe 6.5s ease-in-out infinite;
 }
@@ -336,7 +365,8 @@
 .state-sleeping .familiar-tail { transform: rotate(78deg) translateY(4px); }
 
 /* summoning: drawer-linked aura expansion + glyph reveal (map) */
-.state-summoning .familiar-core {
+.state-summoning .familiar-core,
+.state-summoning .familiar-character-frame-wrap {
   transform: scale(1.04);
 }
 
@@ -381,19 +411,25 @@
    Each mode class on shell modifies emphasis. Eyes already vary via
    data-eye; here we add posture/aura/glyph weight cues.
    ================================================================== */
-.mode-dex .familiar-core { filter: contrast(1.05) saturate(1.1); }
+.mode-dex .familiar-core,
+.mode-dex .familiar-character-frame-wrap { filter: contrast(1.05) saturate(1.1); }
 .mode-dex .familiar-aura { box-shadow: 0 0 18px 4px var(--accent); }
 .mode-work .familiar-glyph-ring .familiar-glyph { opacity: 0.7; }
-.mode-work .familiar-core { transform: translateY(-1px) scaleY(1.01); }
+.mode-work .familiar-core,
+.mode-work .familiar-character-frame-wrap { transform: translateY(-1px) scaleY(1.01); }
 .mode-canon .familiar-shell { /* higher continuity emphasis via steadier */ }
 .mode-canon .familiar-glyph-ring .familiar-glyph { animation-duration: 2.4s; }
 .mode-build .familiar-glyph-ring { filter: brightness(1.15); }
 .mode-fable .familiar-aura { opacity: 0.5; } /* scarcity, less glow */
-.mode-crisis .familiar-core { filter: brightness(0.9) saturate(0.8); }
+.mode-crisis .familiar-core,
+.mode-crisis .familiar-character-frame-wrap { filter: brightness(0.9) saturate(0.8); }
 .mode-crisis .familiar-aura { box-shadow: 0 0 12px 3px var(--accent); }
-.mode-crisis.state-idle .familiar-core { animation: core-breathe-crisis 3.0s ease-in-out infinite; }
-.mode-crisis.state-watching .familiar-core { animation: core-breathe-crisis 2.0s ease-in-out infinite; }
-.mode-crisis.state-sleeping .familiar-core { animation: core-breathe-crisis 5.0s ease-in-out infinite; }
+.mode-crisis.state-idle .familiar-core,
+.mode-crisis.state-idle .familiar-character-frame-wrap { animation: core-breathe-crisis 3.0s ease-in-out infinite; }
+.mode-crisis.state-watching .familiar-core,
+.mode-crisis.state-watching .familiar-character-frame-wrap { animation: core-breathe-crisis 2.0s ease-in-out infinite; }
+.mode-crisis.state-sleeping .familiar-core,
+.mode-crisis.state-sleeping .familiar-character-frame-wrap { animation: core-breathe-crisis 5.0s ease-in-out infinite; }
 
 /* ==================================================================
    REDUCED MOTION — the OS media query and the .rm class (set by the
@@ -402,6 +438,7 @@
    ================================================================== */
 @media (prefers-reduced-motion: reduce) {
   .familiar-shell .familiar-core,
+  .familiar-shell .familiar-character-frame-wrap,
   .familiar-shell .familiar-aura,
   .familiar-shell .familiar-shadow,
   .familiar-shell .familiar-glyph-ring .familiar-glyph,
@@ -409,6 +446,7 @@
     animation: none !important;
   }
   .familiar-shell .familiar-core,
+  .familiar-shell .familiar-character-frame-wrap,
   .familiar-shell .familiar-fin,
   .familiar-shell .familiar-eye,
   .familiar-shell .familiar-tail {
@@ -416,6 +454,7 @@
   }
 }
 .familiar-shell.rm .familiar-core,
+.familiar-shell.rm .familiar-character-frame-wrap,
 .familiar-shell.rm .familiar-aura,
 .familiar-shell.rm .familiar-shadow,
 .familiar-shell.rm .familiar-glyph-ring .familiar-glyph,
@@ -423,6 +462,7 @@
   animation: none !important;
 }
 .familiar-shell.rm .familiar-core,
+.familiar-shell.rm .familiar-character-frame-wrap,
 .familiar-shell.rm .familiar-fin,
 .familiar-shell.rm .familiar-eye,
 .familiar-shell.rm .familiar-tail {
