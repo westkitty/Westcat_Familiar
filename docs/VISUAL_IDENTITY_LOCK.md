@@ -95,3 +95,11 @@ Modes must visibly change emphasis or behavior (not just label):
 ---
 
 Preserved from Fable output on main. Repair branch: visual-identity/no-svg-familiar-v0
+
+## State Machine Consistency Refactoring
+To align TypeScript state declarations with visual mapping and prevent state type conflicts, the following states were refactored for consistency:
+- `dormant` -> refactored to `sleeping`
+- `attentive` -> refactored to `watching`
+- `reacting` -> refactored to `alert`
+
+These state changes are verified typecheck-safe and matching visual CSS classes.

@@ -212,3 +212,16 @@
 - Outcome: PASS
 - Notes: Standardized general and quick action disabled button states in CSS, and disabled AI commands when budget is depleted.
 
+### Iteration 16
+- Category: Documentation
+- Problem found: `docs/VISUAL_IDENTITY_LOCK.md` does not document the state type fixes (`dormant -> sleeping`, `attentive -> watching`, `reacting -> alert`) that resolved the TypeScript state mismatches.
+- Intended change: Add details of the state machine type consistency merge and type modifications directly to `docs/VISUAL_IDENTITY_LOCK.md`.
+- Files expected: docs/VISUAL_IDENTITY_LOCK.md
+- Risk level: Low
+- Verification plan: Run `npm run verify` to confirm project compilation.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: docs/VISUAL_IDENTITY_LOCK.md
+- Regression guard: Checked state labels; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Documented state consistency changes inside `VISUAL_IDENTITY_LOCK.md` to ensure maintainability of the state labels.
+
