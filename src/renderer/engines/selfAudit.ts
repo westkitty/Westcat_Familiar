@@ -118,6 +118,32 @@ function checkModeCoverage(): AuditCheck {
   }
 }
 
+function checkModeTiming(): AuditCheck {
+  const problems: string[] = []
+  for (const m of MODE_LIST) {
+    const ms = m.attention.nudgeAfterIdleMs
+    if (ms !== null) {
+      if (typeof ms !== 'number' || isNaN(ms)) {
+        problems.push(`${m.id}: nudgeAfterIdleMs is not a number`)
+      } else if (ms <= 0) {
+        problems.push(`${m.id}: nudgeAfterIdleMs is negative or zero (${ms})`)
+      } else if (ms < 5000) {
+        problems.push(`${m.id}: nudgeAfterIdleMs is too low (${ms}ms)`)
+      }
+    }
+  }
+  return {
+    id: 'mode-timing',
+    law: 'Law 6 — Mode Changes Behavior',
+    title: 'Mode attention timing parameters',
+    status: problems.length === 0 ? 'pass' : 'fail',
+    detail: problems.length === 0
+      ? 'All modes have valid attention timing thresholds (positive, safe proactivity bounds).'
+      : `Timing violations: ${problems.join('; ')}`,
+    evidenceTier: 'verified'
+  }
+}
+
 function checkScarcityGate(): AuditCheck {
   const remaining = useAttentionStore.getState().fableBudgetRemaining
   const finite =
@@ -386,6 +412,7 @@ export function runSelfAudit(): AuditReport {
     checkFamiliarFirst(),
     checkStateMachine(),
     checkModeCoverage(),
+    checkModeTiming(),
     checkEvidenceCoverage(),
     checkEvidenceBadgePresence(),
     checkScarcityGate(),

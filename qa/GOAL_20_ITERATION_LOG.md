@@ -121,3 +121,15 @@
 - Outcome: PASS
 - Notes: Enriched interactive ARIA state for the familiar component, communicating drawer expansion status cleanly.
 
+### Iteration 9
+- Category: Self-Audit
+- Problem found: There is no self-audit check asserting that mode attention parameters (such as `nudgeAfterIdleMs`) are valid positive numbers, risking silent execution loops or bugs if a configuration introduces negative delay constants.
+- Intended change: Implement `checkModeTiming` in `selfAudit.ts` that iterates through all modes and validates that any non-null `nudgeAfterIdleMs` is positive and safe (>= 5s).
+- Files expected: src/renderer/engines/selfAudit.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` and run automated visual QA smoke check.
+- Verification result: Ran `npm run verify` successfully. Self-Audit reports 18 passed checks.
+- Files changed: src/renderer/engines/selfAudit.ts
+- Regression guard: Checked `runSelfAudit` array contents; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Added robust schema/bounds timing validation check for mode configurations to the self-audit suite.
