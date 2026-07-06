@@ -264,3 +264,15 @@
 - Outcome: PASS
 - Notes: Added record-level evidence validation checking that all mocked elements contain legal evidence badges.
 
+### Iteration 20
+- Category: Documentation
+- Problem found: Codebase has complex relationships between state types, transitions, mode lists, and audit arrays that lack a single consolidated maintainer checklist for adding new modes/states.
+- Intended change: Write `docs/DEVELOPER_STATE_MODE_CHECKLIST.md` clarifying exact instructions, files to modify, and audit checks to update.
+- Files expected: docs/DEVELOPER_STATE_MODE_CHECKLIST.md
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test build/compiling.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: docs/DEVELOPER_STATE_MODE_CHECKLIST.md
+- Regression guard: Checked file references; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Generated developer guide `docs/DEVELOPER_STATE_MODE_CHECKLIST.md` outlining clear extending rules for states and modes.
