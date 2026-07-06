@@ -346,6 +346,10 @@
   0%, 100% { scale: 1; }
   50% { scale: 1.018 1.03; }
 }
+@keyframes core-breathe-crisis {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.006 1.01; } /* tighter, reduced breathing amplitude for crisis mode */
+}
 @keyframes core-twitch {
   0%, 100% { translate: 0 0; }
   30% { translate: -2px 0; }
@@ -387,6 +391,9 @@
 .mode-fable .familiar-aura { opacity: 0.5; } /* scarcity, less glow */
 .mode-crisis .familiar-core { filter: brightness(0.9) saturate(0.8); }
 .mode-crisis .familiar-aura { box-shadow: 0 0 12px 3px var(--accent); }
+.mode-crisis.state-idle .familiar-core { animation: core-breathe-crisis 3.0s ease-in-out infinite; }
+.mode-crisis.state-watching .familiar-core { animation: core-breathe-crisis 2.0s ease-in-out infinite; }
+.mode-crisis.state-sleeping .familiar-core { animation: core-breathe-crisis 5.0s ease-in-out infinite; }
 
 /* ==================================================================
    REDUCED MOTION — the OS media query and the .rm class (set by the

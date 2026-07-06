@@ -82,3 +82,16 @@
 - Outcome: PASS
 - Notes: Documented the unified verification pipeline in README.md.
 
+### Iteration 6
+- Category: Visualization
+- Problem found: Crisis mode has color and brightness changes but does not enforce the constitutional requirement for "reduced flourish" (tighter, less decorative breathing motion) on the familiar's physical posture.
+- Intended change: Implement a custom, tighter breathing animation loop (`core-breathe-crisis`) for the familiar during crisis mode to visually communicate tension and reduced flourish.
+- Files expected: src/renderer/styles/familiar.css
+- Risk level: Low
+- Verification plan: Run `npm run verify`, launch dev server, and check crisis mode posture visually via Playwright.
+- Verification result: Passed tsc/build verification and visual smoke check.
+- Files changed: src/renderer/styles/familiar.css
+- Regression guard: Checked CSS keyframe declarations; no SVG/other state regressions.
+- Outcome: PASS
+- Notes: Constrained body breathing scale dynamics to [1, 1.01] during crisis mode to align with the constitutional reduced-flourish specification.
+
