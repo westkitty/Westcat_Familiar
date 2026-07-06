@@ -56,3 +56,16 @@
 - Outcome: PASS
 - Notes: Refactored Escape handler to be pure and dependent on state variables, ensuring predictable panel and drawer closure.
 
+### Iteration 4
+- Category: Self-Audit
+- Problem found: Existing evidence audit only validates raw data structures and does not assert that evidence tags are actually rendered inside the active panel components.
+- Intended change: Add a `checkEvidenceBadgePresence` check to `selfAudit.ts` that scans the visible panel DOM for `.evidence-badge` elements when a data panel is active, and returns pass if no panel is currently open to avoid false errors.
+- Files expected: src/renderer/engines/selfAudit.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` and verify that Self-Audit passes when run normally, and fails/passes as expected under test parameters.
+- Verification result: Passed typecheck, build, and automated visual QA smoke check. Audit ran with 17 pass, 1 warn, 0 fail.
+- Files changed: src/renderer/engines/selfAudit.ts
+- Regression guard: grep checks clean, no SVG/state regression.
+- Outcome: PASS
+- Notes: Added a robust DOM audit check for visible evidence badges in active panels. Handled the asynchronous React render of the Self-Audit panel cleanly.
+
