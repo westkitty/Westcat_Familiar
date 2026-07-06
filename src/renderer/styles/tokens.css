@@ -1,0 +1,55 @@
+/* Design tokens — WESTCAT Familiar "night desk" palette.
+   No webfonts (Law 8: local first); system stacks carry the voice. */
+:root {
+  /* surfaces */
+  --ink-0: #0b0e1a;
+  --ink-1: #151b30;
+  --ink-2: #1f2740;
+  --glass: rgba(11, 14, 26, 0.88);
+  --glass-soft: rgba(21, 27, 48, 0.92);
+  --line: rgba(236, 233, 223, 0.14);
+
+  /* text */
+  --paper: #ece9df;
+  --muted: #98a0b8;
+
+  /* evidence tiers (Law 5) */
+  --ev-verified: #4ade9c;
+  --ev-mock: #ffb454;
+  --ev-inferred: #7aa5ff;
+  --ev-stale: #9aa0a6;
+  --ev-unavailable: #ff6b6b;
+  --ev-future_seam: #c792ea;
+
+  /* mode accents (Law 6) — nine modes, nine signals */
+  --mode-plain: #9aa4b2;
+  --mode-dex: #8fd3ff;
+  --mode-work: #a78bfa;
+  --mode-canon: #e8c268;
+  --mode-build: #7bd88f;
+  --mode-necromancy: #c85bdd;
+  --mode-fable: #c792ea;
+  --mode-image: #4fd1c5;
+  --mode-crisis: #ff6b6b;
+
+  /* the active accent; the stage rebinds this per mode */
+  --accent: var(--mode-plain);
+
+  /* type */
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, 'Cascadia Mono', monospace;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+/* Law 6: the mode recolors the whole experience, not just a label. */
+.stage[data-mode='plain'] { --accent: var(--mode-plain); }
+.stage[data-mode='dex'] { --accent: var(--mode-dex); }
+.stage[data-mode='work'] { --accent: var(--mode-work); }
+.stage[data-mode='canon'] { --accent: var(--mode-canon); }
+.stage[data-mode='build'] { --accent: var(--mode-build); }
+.stage[data-mode='necromancy'] { --accent: var(--mode-necromancy); }
+.stage[data-mode='fable'] { --accent: var(--mode-fable); }
+.stage[data-mode='image'] { --accent: var(--mode-image); }
+.stage[data-mode='crisis'] { --accent: var(--mode-crisis); }

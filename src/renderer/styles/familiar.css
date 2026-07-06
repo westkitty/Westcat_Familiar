@@ -1,0 +1,413 @@
+/* WESTCAT Familiar v0 — DOM/CSS visual grammar. NO SVG (see
+   docs/VISUAL_IDENTITY_LOCK.md). The creature is layered divs:
+   shell > aura / tail / core (fins, eyes, glyphs, band) > status.
+
+   Law 3 (Motion Means State): every keyframe below is keyed to a
+   `state-<id>` class set by the state machine, or to a data-attribute
+   (data-eyes / data-aura / data-glyphs) set from the per-state visual
+   map. Modes contribute `mode-<id>` classes and the --accent color.
+   Nothing animates outside those hooks. */
+
+.familiar-root {
+  position: absolute;
+  z-index: 50;
+  cursor: grab;
+  touch-action: none;
+}
+.familiar-root:active {
+  cursor: grabbing;
+}
+
+.familiar-shell {
+  position: relative;
+  width: 132px;
+  height: 128px;
+}
+
+/* ---------- aura — box-shadow ring, intensity via data-aura ---------- */
+
+.familiar-aura {
+  position: absolute;
+  inset: 14px 16px 22px 16px;
+  border-radius: 46% 46% 42% 42% / 50% 50% 40% 40%;
+  pointer-events: none;
+  transition: box-shadow 400ms ease, opacity 400ms ease, transform 400ms ease;
+  opacity: 0;
+}
+.familiar-shell[data-aura='dim'] .familiar-aura {
+  opacity: 0.35;
+  box-shadow: 0 0 10px 1px var(--accent);
+}
+.familiar-shell[data-aura='low'] .familiar-aura {
+  opacity: 0.55;
+  box-shadow: 0 0 14px 2px var(--accent);
+}
+.familiar-shell[data-aura='high'] .familiar-aura {
+  opacity: 0.95;
+  box-shadow: 0 0 22px 5px var(--accent), 0 0 46px 10px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.familiar-shell[data-aura='pulse'] .familiar-aura {
+  opacity: 0.6;
+  box-shadow: 0 0 14px 2px var(--accent);
+  animation: aura-pulse 1.8s ease-in-out infinite;
+}
+.familiar-shell[data-aura='expand'] .familiar-aura {
+  opacity: 0.9;
+  box-shadow: 0 0 26px 7px var(--accent);
+  animation: aura-expand 0.9s ease-out;
+}
+
+/* ---------- core — the dark wedge body ---------- */
+
+.familiar-core {
+  position: absolute;
+  inset: 16px 18px 24px 18px; /* compact slab, wider than tall */
+  background: linear-gradient(168deg, #1c2233 0%, #12172a 62%, #0d1122 100%);
+  border: 1px solid rgba(236, 233, 223, 0.28);
+  /* rounded-wedge silhouette — deliberately not a circle, not a head */
+  border-radius: 44% 44% 38% 38% / 58% 58% 30% 30%;
+  box-shadow:
+    inset 0 -8px 18px rgba(0, 0, 0, 0.55),
+    inset 0 6px 12px rgba(236, 233, 223, 0.05),
+    0 12px 26px rgba(0, 0, 0, 0.5);
+  transition: transform 300ms ease, filter 300ms ease;
+  transform-origin: 50% 90%;
+}
+
+/* ---------- fins — angular clipped divs, not ears of a pet ---------- */
+
+.familiar-ear {
+  position: absolute;
+  top: -14px;
+  width: 26px;
+  height: 22px;
+  background: linear-gradient(180deg, #232a3e, #141a2e);
+  border: 0;
+  transition: transform 300ms ease;
+}
+.familiar-ear-left {
+  left: 12px;
+  clip-path: polygon(8% 100%, 30% 0%, 100% 82%);
+  transform-origin: 60% 100%;
+}
+.familiar-ear-right {
+  right: 12px;
+  clip-path: polygon(0% 82%, 70% 0%, 92% 100%);
+  transform-origin: 40% 100%;
+}
+.familiar-ear::after {
+  /* accent edge along the fin — a signal surface, not inner-ear pink */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0.35;
+  clip-path: polygon(30% 100%, 45% 30%, 60% 100%);
+}
+
+/* ---------- eyes — narrow CSS blocks; aperture via data-eyes ---------- */
+
+.familiar-eye {
+  position: absolute;
+  top: 34%;
+  width: 22px;
+  height: 8px;
+  background: color-mix(in srgb, var(--accent) 65%, #ece9df);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: height 250ms ease, transform 250ms ease, opacity 250ms ease, filter 250ms ease;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.familiar-eye-left { left: 22%; }
+.familiar-eye-right { right: 22%; }
+
+.familiar-gaze {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7px;
+  height: 100%;
+  margin-left: -3.5px;
+  background: #0b0e1a;
+  border-radius: 1px;
+  transition: transform 250ms ease;
+}
+
+/* eye aperture per state map */
+.familiar-shell[data-eyes='narrow'] .familiar-eye {
+  height: 4px;
+  filter: brightness(1.25);
+}
+.familiar-shell[data-eyes='down'] .familiar-eye {
+  height: 6px;
+  transform: translateY(3px);
+}
+.familiar-shell[data-eyes='down'] .familiar-gaze {
+  transform: translateY(2px);
+}
+.familiar-shell[data-eyes='closed'] .familiar-eye {
+  height: 2px;
+  opacity: 0.55;
+  filter: brightness(0.6);
+}
+.familiar-shell.blinking .familiar-eye {
+  height: 2px;
+}
+
+/* mode eye grammar (data-eye) — the mode changes HOW it looks at you */
+.familiar-shell[data-eye='soft'] .familiar-eye { border-radius: 4px; }
+.familiar-shell[data-eye='sharp'] .familiar-eye {
+  border-radius: 1px;
+  transform: skewX(-12deg);
+}
+.familiar-shell[data-eye='sharp'][data-eyes='down'] .familiar-eye {
+  transform: skewX(-12deg) translateY(3px);
+}
+.familiar-shell[data-eye='wide'] .familiar-eye {
+  width: 26px;
+  height: 10px;
+}
+.familiar-shell[data-eye='wide'][data-eyes='narrow'] .familiar-eye { height: 5px; }
+.familiar-shell[data-eye='scan'] .familiar-eye {
+  border-radius: 0;
+  background: color-mix(in srgb, var(--accent) 85%, #ece9df);
+}
+.familiar-shell[data-eye='scan'] .familiar-gaze {
+  width: 5px;
+  animation: gaze-scan 2.6s ease-in-out infinite;
+}
+
+/* ---------- command glyphs — three status ticks, pattern via data-glyphs */
+
+.familiar-glyphs {
+  position: absolute;
+  bottom: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.familiar-glyphs .glyph {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  opacity: 0;
+  border-radius: 1px;
+  transition: opacity 250ms ease;
+}
+.familiar-shell[data-glyphs='active'] .glyph {
+  opacity: 0.9;
+  animation: glyph-seq 1.2s ease-in-out infinite;
+}
+.familiar-shell[data-glyphs='active'] .glyph:nth-child(2) { animation-delay: 0.2s; }
+.familiar-shell[data-glyphs='active'] .glyph:nth-child(3) { animation-delay: 0.4s; }
+.familiar-shell[data-glyphs='reveal'] .glyph {
+  opacity: 0.9;
+  animation: glyph-reveal 0.5s ease-out backwards;
+}
+.familiar-shell[data-glyphs='reveal'] .glyph:nth-child(2) { animation-delay: 0.12s; }
+.familiar-shell[data-glyphs='reveal'] .glyph:nth-child(3) { animation-delay: 0.24s; }
+/* locked: dim ticks with two crossed bars drawn by pseudo-elements */
+.familiar-shell[data-glyphs='locked'] .glyph { opacity: 0.25; }
+.familiar-shell[data-glyphs='locked'] .familiar-glyphs::before,
+.familiar-shell[data-glyphs='locked'] .familiar-glyphs::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 2px;
+  margin: -1px 0 0 -17px;
+  background: var(--ev-unavailable);
+  opacity: 0.8;
+}
+.familiar-shell[data-glyphs='locked'] .familiar-glyphs::before { transform: rotate(28deg); }
+.familiar-shell[data-glyphs='locked'] .familiar-glyphs::after { transform: rotate(-28deg); }
+
+/* ---------- accent band — the mode color worn on the body ---------- */
+
+.familiar-band {
+  position: absolute;
+  bottom: 14%;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  opacity: 0.8;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* ---------- tail — signal filament from a CSS border arc ---------- */
+
+.familiar-tail {
+  position: absolute;
+  right: -8px;
+  bottom: 26px;
+  width: 34px;
+  height: 34px;
+  border: 3px solid transparent;
+  border-top-color: #232a3e;
+  border-right-color: #232a3e;
+  border-radius: 50%;
+  transform: rotate(32deg);
+  transition: transform 400ms ease, opacity 400ms ease;
+}
+
+/* ==================================================================
+   STATE GRAMMAR — one block per machine state (Law 3)
+   ================================================================== */
+
+/* idle: slow quiet breathing, neutral gaze */
+.state-idle .familiar-core {
+  animation: core-breathe 4.6s ease-in-out infinite;
+}
+
+/* watching: slight forward tilt; eyes already narrowed+bright via map */
+.state-watching .familiar-core {
+  transform: translateY(-2px) rotate(-1deg);
+  animation: core-breathe 3.2s ease-in-out infinite;
+}
+
+/* thinking: gaze lowered (map) + core pulse handled by data-aura */
+.state-thinking .familiar-core {
+  transform: rotate(-2deg);
+}
+
+/* working: firmer posture, glyph activity via data-glyphs */
+.state-working .familiar-core {
+  transform: translateY(-1px) scaleY(1.02);
+}
+
+/* judging: stillness — no breathing at all, low aura, slit eyes */
+.state-judging .familiar-core {
+  transform: translateY(-1px);
+  animation: none;
+}
+
+/* annoyed: sharper tilt + one short restrained twitch */
+.state-annoyed .familiar-core {
+  transform: rotate(-4deg);
+  animation: core-twitch 0.34s ease-in-out 1;
+}
+
+/* alert: raised fins, strong aura (map), lifted posture */
+.state-alert .familiar-core {
+  transform: translateY(-4px);
+}
+.state-alert .familiar-ear-left { transform: rotate(-10deg) translateY(-2px); }
+.state-alert .familiar-ear-right { transform: rotate(10deg) translateY(-2px); }
+
+/* blocked: dimmed body, locked glyphs (map), motion suppressed */
+.state-blocked .familiar-core {
+  filter: brightness(0.55) saturate(0.6);
+  animation: none;
+}
+.state-blocked .familiar-tail { opacity: 0.4; }
+
+/* sleeping: lowered posture, dim aura, eyes closed (map) */
+.state-sleeping .familiar-core {
+  transform: translateY(7px) scaleY(0.86);
+  animation: core-breathe 6.5s ease-in-out infinite;
+}
+.state-sleeping .familiar-ear-left { transform: rotate(9deg) translateY(2px); }
+.state-sleeping .familiar-ear-right { transform: rotate(-9deg) translateY(2px); }
+.state-sleeping .familiar-tail { transform: rotate(78deg) translateY(4px); }
+
+/* summoning: drawer-linked aura expansion + glyph reveal (map) */
+.state-summoning .familiar-core {
+  transform: scale(1.04);
+}
+
+/* ---------- keyframes (referenced only by state/data hooks above) ---- */
+
+@keyframes core-breathe {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.018 1.03; }
+}
+@keyframes core-twitch {
+  0%, 100% { translate: 0 0; }
+  30% { translate: -2px 0; }
+  60% { translate: 2px 0; }
+}
+@keyframes aura-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+@keyframes aura-expand {
+  0% { transform: scale(0.9); opacity: 0.2; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+@keyframes glyph-seq {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@keyframes glyph-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 0.9; transform: translateY(0); }
+}
+@keyframes gaze-scan {
+  0%, 100% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+}
+
+/* ==================================================================
+   REDUCED MOTION — the OS media query and the .rm class (set by the
+   animation engine) kill every loop; poses, apertures, auras and the
+   status badge still change discretely, so state stays legible.
+   ================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .familiar-shell .familiar-core,
+  .familiar-shell .familiar-aura,
+  .familiar-shell .glyph,
+  .familiar-shell .familiar-gaze {
+    animation: none !important;
+  }
+  .familiar-shell .familiar-core,
+  .familiar-shell .familiar-ear,
+  .familiar-shell .familiar-eye,
+  .familiar-shell .familiar-tail {
+    transition: none;
+  }
+}
+.familiar-shell.rm .familiar-core,
+.familiar-shell.rm .familiar-aura,
+.familiar-shell.rm .glyph,
+.familiar-shell.rm .familiar-gaze {
+  animation: none !important;
+}
+.familiar-shell.rm .familiar-core,
+.familiar-shell.rm .familiar-ear,
+.familiar-shell.rm .familiar-eye,
+.familiar-shell.rm .familiar-tail {
+  transition: none;
+}
+
+/* ---------- status badge + whisper (existing UI text, not art) ------- */
+
+.familiar-status {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-top: 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.status-state { margin-left: 3px; }
+.status-rm { color: var(--ev-mock); }
+
+.familiar-whisper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -26px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  color: var(--paper);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
