@@ -133,3 +133,17 @@
 - Regression guard: Checked `runSelfAudit` array contents; no SVG/state regressions.
 - Outcome: PASS
 - Notes: Added robust schema/bounds timing validation check for mode configurations to the self-audit suite.
+
+### Iteration 10
+- Category: Visualization
+- Problem found: Changing active mode accent variables triggers abrupt color updates on the command drawer's top accent border without any transition duration, breaking visual continuity.
+- Intended change: Add a smooth `transition: border-top-color 0.3s ease;` rule to the `.command-drawer` container in CSS.
+- Files expected: src/renderer/index.css
+- Risk level: Low
+- Verification plan: Run `npm run verify` to confirm compilation.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/index.css
+- Regression guard: Checked that no other components are affected; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Enabled a smooth 300ms transition for the command drawer's top accent border color during mode changes.
+

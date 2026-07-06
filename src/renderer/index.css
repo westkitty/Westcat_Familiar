@@ -178,6 +178,7 @@ input[type='text']:focus {
   z-index: 40;
   max-height: calc(100vh - 24px);
   overflow-y: auto;
+  transition: border-top-color 0.3s ease;
 }
 
 .drawer-header {
