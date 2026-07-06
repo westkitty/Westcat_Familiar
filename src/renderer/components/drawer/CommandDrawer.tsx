@@ -59,7 +59,7 @@ export function CommandDrawer({
     const trimmed = question.trim()
     if (!trimmed) return
     const fam = useFamiliarStore.getState()
-    if (fam.stateId === 'dormant') fam.requestState('idle')
+    if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const decision = routeInput(trimmed, fableBudget)
     if (decision.requiresGate) {

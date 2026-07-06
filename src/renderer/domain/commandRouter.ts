@@ -19,7 +19,7 @@ export const COMMANDS: Record<string, Command> = {
   nap: {
     id: 'nap',
     label: 'Nap / wake',
-    description: 'Toggle the dormant state. Dormant familiars never nudge.',
+    description: 'Toggle the sleeping state. Sleeping familiars never nudge.',
     kind: 'local'
   },
   'checkin-note': {

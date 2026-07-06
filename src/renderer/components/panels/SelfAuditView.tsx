@@ -49,14 +49,14 @@ export function SelfAuditView({ onClose }: { onClose: () => void }): JSX.Element
 
   const run = (): void => {
     const fam = useFamiliarStore.getState()
-    if (fam.stateId === 'dormant') fam.requestState('idle')
+    if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const fresh = runSelfAudit()
     setReport(fresh)
     continuityFirewall.addSessionEvent(
       `Self-audit ran: ${fresh.passed} pass / ${fresh.warned} warn / ${fresh.failed} fail.`
     )
-    fam.requestState('reacting')
+    fam.requestState('working')
     fam.setWhisper(
       fresh.failed === 0 ? 'audit clean' : `audit found ${fresh.failed} failure(s)`
     )

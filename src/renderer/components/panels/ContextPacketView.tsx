@@ -47,7 +47,7 @@ export function ContextPacketView({
 
   const forge = (): void => {
     const fam = useFamiliarStore.getState()
-    if (fam.stateId === 'dormant') fam.requestState('idle')
+    if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const packet = forgePacket({
       question: question || null,

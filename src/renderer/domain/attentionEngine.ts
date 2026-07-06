@@ -10,7 +10,7 @@ export interface AttentionInputs {
   msIdle: number
   profile: AttentionProfile
   drawerOpen: boolean
-  dormant: boolean
+  sleeping: boolean
   nudgesThisHour: number
   nudgeHourlyCap: number
   msSinceLastNudge: number
@@ -21,11 +21,11 @@ const TIER = 'inferred' as const
 
 export function evaluateAttention(i: AttentionInputs): AttentionDecision {
   const base = { msIdle: i.msIdle, evidenceTier: TIER }
-  if (i.dormant) {
+  if (i.sleeping) {
     return {
       ...base,
       action: 'stay_quiet',
-      reason: 'Familiar is dormant; it earns nothing by waking you.'
+      reason: 'Familiar is sleeping; it earns nothing by waking you.'
     }
   }
   if (i.drawerOpen) {

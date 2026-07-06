@@ -3,6 +3,7 @@
  * on the DOM shell (data-eyes / data-aura / data-glyphs). familiar.css
  * keys shared looks off these attributes and unique motion off the
  * `state-<id>` class. Law 3: no pose without a state.
+ * Visuals are DOM/CSS only (no SVG).
  */
 import type { FamiliarStateId } from '../../../types/familiar'
 

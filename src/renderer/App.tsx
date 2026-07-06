@@ -47,9 +47,9 @@ export default function App(): JSX.Element {
       const fam = useFamiliarStore.getState()
       const decision = useAttentionStore
         .getState()
-        .evaluate(mode.attention, drawerOpen, fam.stateId === 'dormant')
+        .evaluate(mode.attention, drawerOpen, fam.stateId === 'sleeping')
       if (decision.action === 'nudge') {
-        fam.requestState('attentive')
+        fam.requestState('watching')
         fam.setWhisper(decision.reason)
       }
     }, ATTENTION_TICK_MS)
