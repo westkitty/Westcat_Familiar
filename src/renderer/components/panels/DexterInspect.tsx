@@ -64,6 +64,13 @@ export function DexterInspect({ onClose }: { onClose: () => void }): JSX.Element
 
       <h3 className="dexter-h">DECISIONS</h3>
       <table className="data-table">
+        <thead>
+          <tr>
+            <th>date</th>
+            <th>decision / rationale</th>
+            <th>tier</th>
+          </tr>
+        </thead>
         <tbody>
           {MOCK_DECISIONS.map((d) => (
             <tr key={d.id}>
@@ -81,6 +88,13 @@ export function DexterInspect({ onClose }: { onClose: () => void }): JSX.Element
 
       <h3 className="dexter-h">RISKS</h3>
       <table className="data-table">
+        <thead>
+          <tr>
+            <th>severity</th>
+            <th>risk / mitigation</th>
+            <th>tier</th>
+          </tr>
+        </thead>
         <tbody>
           {MOCK_RISKS.map((r) => (
             <tr key={r.id}>
@@ -107,6 +121,13 @@ export function DexterInspect({ onClose }: { onClose: () => void }): JSX.Element
 
       <h3 className="dexter-h">CURRENT STRUCTURE (compiled-in snapshot — may drift from disk)</h3>
       <table className="data-table">
+        <thead>
+          <tr>
+            <th>path</th>
+            <th>role</th>
+            <th>tier</th>
+          </tr>
+        </thead>
         <tbody>
           {STRUCTURE_SNAPSHOT.map((s) => (
             <tr key={s.path}>

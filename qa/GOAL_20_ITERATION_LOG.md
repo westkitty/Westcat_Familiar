@@ -238,3 +238,16 @@
 - Outcome: PASS
 - Notes: Sanitized all numeric scheduling inputs in `evaluateAttention` to be >= 0, shielding the nudging state logic from external clock anomalies.
 
+### Iteration 18
+- Category: Accessibility
+- Problem found: Multiple data tables inside the `DexterInspect` panel lack proper semantic `<thead>` headers, violating screen reader accessibility guidelines.
+- Intended change: Insert appropriate semantic `<thead>` header blocks containing descriptive column labels for Decisions, Risks, and Structure snapshot tables.
+- Files expected: src/renderer/components/panels/DexterInspect.tsx
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test build/compiling.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/components/panels/DexterInspect.tsx
+- Regression guard: Checked table structures; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Standardized all Dexter Inspect tables with semantic accessibility headers (`<thead>` with label cells).
+
