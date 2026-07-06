@@ -293,6 +293,30 @@ function checkFreshness(): AuditCheck {
   }
 }
 
+function checkMockEvidenceProperties(): AuditCheck {
+  const problems: string[] = []
+  const legalTiers = new Set(['verified', 'inferred', 'stale', 'mock', 'unavailable', 'future_seam'])
+  for (const c of allCollections()) {
+    c.records.forEach((r, idx) => {
+      if (!r.evidenceTier) {
+        problems.push(`${c.name}[${idx}]: missing evidenceTier`)
+      } else if (!legalTiers.has(r.evidenceTier)) {
+        problems.push(`${c.name}[${idx}]: invalid evidenceTier '${r.evidenceTier}'`)
+      }
+    })
+  }
+  return {
+    id: 'mock-evidence-properties',
+    law: 'Law 5 — No False Certainty',
+    title: 'Mock data evidence properties',
+    status: problems.length === 0 ? 'pass' : 'fail',
+    detail: problems.length === 0
+      ? 'All mock data records carry valid, recognized evidenceTier property definitions.'
+      : `Audit issues: ${problems.join('; ')}`,
+    evidenceTier: 'verified'
+  }
+}
+
 function checkEvidenceBadgePresence(): AuditCheck {
   const panel = document.querySelector('.panel')
   if (panel) {
@@ -451,6 +475,7 @@ export function runSelfAudit(): AuditReport {
     checkPersistenceHealth(),
     checkReducedMotion(),
     checkFreshness(),
+    checkMockEvidenceProperties(),
     // visual identity additions
     checkNoSvgFamiliar(),
     checkRequiredStateClasses(),

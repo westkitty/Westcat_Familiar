@@ -251,3 +251,16 @@
 - Outcome: PASS
 - Notes: Standardized all Dexter Inspect tables with semantic accessibility headers (`<thead>` with label cells).
 
+### Iteration 19
+- Category: Self-Audit
+- Problem found: Mocks and data elements could potentially lack a defined `evidenceTier` property, violating Law 5 (No False Certainty) silently at runtime.
+- Intended change: Implement `checkMockEvidenceProperties` in `selfAudit.ts` that scans all collections and records to verify that every item carries a valid evidence tier.
+- Files expected: src/renderer/engines/selfAudit.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` and run automated visual QA smoke check.
+- Verification result: Ran `npm run verify` successfully. Self-Audit reports 20 passed checks.
+- Files changed: src/renderer/engines/selfAudit.ts
+- Regression guard: Checked properties constraints; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Added record-level evidence validation checking that all mocked elements contain legal evidence badges.
+
