@@ -55,6 +55,7 @@ npm run dev
 - `npm run build` — production build
 - `npm run typecheck` — TypeScript check
 - `npm run preview` — preview build
+- `npm run verify` — run unified static checks (typecheck + build)
 
 ## Preservation Note
 

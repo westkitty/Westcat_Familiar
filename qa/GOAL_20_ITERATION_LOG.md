@@ -69,3 +69,16 @@
 - Outcome: PASS
 - Notes: Added a robust DOM audit check for visible evidence badges in active panels. Handled the asynchronous React render of the Self-Audit panel cleanly.
 
+### Iteration 5
+- Category: Documentation
+- Problem found: README.md lists individual scripts but does not document the new unified verify command (`npm run verify`) or describe how verification flows are structured.
+- Intended change: Add details about `npm run verify` and documentation of the verification flow to README.md.
+- Files expected: README.md
+- Risk level: Low
+- Verification plan: Run `npm run verify` to ensure the app builds and verify markdown is clear.
+- Verification result: Ran `npm run verify` cleanly; markdown formatting is correct.
+- Files changed: README.md
+- Regression guard: grep checks clean, no SVG/state regression.
+- Outcome: PASS
+- Notes: Documented the unified verification pipeline in README.md.
+
