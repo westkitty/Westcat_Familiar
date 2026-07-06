@@ -186,3 +186,16 @@
 - Outcome: PASS
 - Notes: Directed active focus automatically to the routed command input on drawer mount, facilitating direct keyboard command entry.
 
+### Iteration 14
+- Category: Self-Audit
+- Problem found: Existing local-first check only detects active remote network resource requests but does not inspect the HTML structure for dormant external script/link resource references.
+- Intended change: Implement `checkOfflineAssets` in `selfAudit.ts` to scan script/link tags for external URL schemes and assert that all resource assets are strictly local references.
+- Files expected: src/renderer/engines/selfAudit.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` and run automated visual QA smoke check.
+- Verification result: Ran `npm run verify` successfully. Self-Audit reports 19 passed checks.
+- Files changed: src/renderer/engines/selfAudit.ts
+- Regression guard: Checked script and link lists; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Implemented DOM scan validation in selfAudit.ts verifying no external CDN links are hardcoded in the document.
+

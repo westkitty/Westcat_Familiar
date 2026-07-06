@@ -230,6 +230,35 @@ function checkLocalFirst(): AuditCheck {
   }
 }
 
+function checkOfflineAssets(): AuditCheck {
+  const externalTags: string[] = []
+  const scripts = document.querySelectorAll('script[src]')
+  scripts.forEach((s) => {
+    const src = s.getAttribute('src') ?? ''
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      externalTags.push(`script: ${src}`)
+    }
+  })
+  const links = document.querySelectorAll('link[href]')
+  links.forEach((l) => {
+    const href = l.getAttribute('href') ?? ''
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      externalTags.push(`link: ${href}`)
+    }
+  })
+  const ok = externalTags.length === 0
+  return {
+    id: 'offline-assets',
+    law: 'Law 8 — Local First',
+    title: 'No remote asset references',
+    status: ok ? 'pass' : 'fail',
+    detail: ok
+      ? 'No external script/stylesheet links found in DOM. Offline assets verify clean.'
+      : `Remote assets referenced in HTML/DOM: ${externalTags.join(', ')}`,
+    evidenceTier: 'verified'
+  }
+}
+
 function checkFamiliarFirst(): AuditCheck {
   const shell = document.querySelector('.familiar-shell')
   const root = document.querySelector('.familiar-root')
@@ -418,6 +447,7 @@ export function runSelfAudit(): AuditReport {
     checkScarcityGate(),
     checkFableDiscipline(),
     checkLocalFirst(),
+    checkOfflineAssets(),
     checkPersistenceHealth(),
     checkReducedMotion(),
     checkFreshness(),
