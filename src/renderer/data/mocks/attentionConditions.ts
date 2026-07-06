@@ -14,8 +14,8 @@ export interface AttentionCondition extends Evidenced {
 
 export const MOCK_ATTENTION_CONDITIONS: AttentionCondition[] = [
   {
-    id: 'att-dormant',
-    rule: 'Familiar is dormant',
+    id: 'att-sleeping',
+    rule: 'Familiar is sleeping',
     effect: 'stay_quiet — a sleeping familiar never interrupts.',
     evidenceTier: 'mock'
   },
@@ -34,7 +34,7 @@ export const MOCK_ATTENTION_CONDITIONS: AttentionCondition[] = [
   {
     id: 'att-idle',
     rule: 'User idle time exceeds the mode threshold',
-    effect: 'nudge — one attentive lift plus a whisper. Nothing louder.',
+    effect: 'nudge — one watching lift plus a whisper. Nothing louder.',
     evidenceTier: 'mock'
   },
   {

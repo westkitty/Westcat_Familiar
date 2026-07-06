@@ -49,7 +49,7 @@ export function SelfAuditView({ onClose }: { onClose: () => void }): JSX.Element
 
   const run = (): void => {
     const fam = useFamiliarStore.getState()
-    if (fam.stateId === 'dormant') fam.requestState('idle')
+    if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const fresh = runSelfAudit()
     setReport(fresh)

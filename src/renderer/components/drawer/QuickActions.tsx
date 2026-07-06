@@ -23,16 +23,16 @@ export function QuickActions({
     const fam = useFamiliarStore.getState()
     switch (id) {
       case 'stretch':
-        if (fam.stateId === 'dormant') fam.requestState('idle')
-        fam.requestState('reacting')
+        if (fam.stateId === 'sleeping') fam.requestState('idle')
+        fam.requestState('alert')
         fam.setWhisper('stretch!')
         break
       case 'nap':
-        if (fam.stateId === 'dormant') {
+        if (fam.stateId === 'sleeping') {
           fam.requestState('idle')
           fam.setWhisper('awake')
         } else {
-          fam.requestState('dormant')
+          fam.requestState('sleeping')
           fam.setWhisper('napping — will not interrupt')
         }
         break
@@ -51,7 +51,7 @@ export function QuickActions({
     setNoteText('')
     setNoteOpen(false)
     const fam = useFamiliarStore.getState()
-    fam.requestState('reacting')
+    fam.requestState('alert')
     fam.setWhisper('noted — verified, session-only')
   }
 

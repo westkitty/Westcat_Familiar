@@ -42,7 +42,7 @@ export function useFamiliarAnimation(
     return () => window.clearInterval(interval)
   }, [anim.blinkIntervalMs])
 
-  // Auto-return transitions (reacting → idle etc.), biased by the mode:
+  // Auto-return transitions (alert → watching etc.), biased by the mode:
   // a state that returns "to idle" settles into the mode's idle bias.
   useEffect(() => {
     const def = FAMILIAR_STATES[stateId]

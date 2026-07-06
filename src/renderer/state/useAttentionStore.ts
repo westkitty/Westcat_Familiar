@@ -21,7 +21,7 @@ interface AttentionStore {
   decision: AttentionDecision
   recordInteraction: () => void
   /** Run the engine; returns the fresh decision and books nudges. */
-  evaluate: (profile: AttentionProfile, drawerOpen: boolean, dormant: boolean) => AttentionDecision
+  evaluate: (profile: AttentionProfile, drawerOpen: boolean, sleeping: boolean) => AttentionDecision
   /** Spend one Fable unit. Returns false if the budget is empty. */
   spendFable: () => boolean
 }
@@ -41,7 +41,7 @@ export const useAttentionStore = create<AttentionStore>()((set, get) => ({
   fableBudgetRemaining: FABLE_SESSION_BUDGET,
   decision: initialDecision,
   recordInteraction: () => set({ lastInteractionAt: Date.now() }),
-  evaluate: (profile, drawerOpen, dormant) => {
+  evaluate: (profile, drawerOpen, sleeping) => {
     const s = get()
     const now = Date.now()
     // Roll the hourly nudge window.
@@ -52,7 +52,7 @@ export const useAttentionStore = create<AttentionStore>()((set, get) => ({
       msIdle: now - s.lastInteractionAt,
       profile,
       drawerOpen,
-      dormant,
+      sleeping,
       nudgesThisHour: get().nudgesThisHour,
       nudgeHourlyCap: NUDGE_HOURLY_CAP,
       msSinceLastNudge: now - s.lastNudgeAt,

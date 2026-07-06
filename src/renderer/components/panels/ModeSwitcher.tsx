@@ -16,8 +16,8 @@ export function ModeSwitcher(): JSX.Element {
     if (id === modeId) return
     useModeStore.getState().setMode(id)
     const fam = useFamiliarStore.getState()
-    if (fam.stateId === 'dormant') fam.requestState('idle')
-    fam.requestState('reacting')
+    if (fam.stateId === 'sleeping') fam.requestState('idle')
+    fam.requestState('alert')
     fam.setWhisper(`mode: ${id}`)
     continuityFirewall.addSessionEvent(`Mode switched to ${id}.`)
   }
