@@ -147,3 +147,16 @@
 - Outcome: PASS
 - Notes: Enabled a smooth 300ms transition for the command drawer's top accent border color during mode changes.
 
+### Iteration 11
+- Category: Documentation
+- Problem found: README.md references `VISUAL_IDENTITY_LOCK.md` but does not explicitly lock down the required CSS layer classes or forbidden patterns directly within the main landing file.
+- Intended change: Add concrete documentation of the 12 required CSS layers and explicit forbidden rules under the "Visual Identity" section of README.md.
+- Files expected: README.md
+- Risk level: Low
+- Verification plan: Run `npm run verify` to confirm project integrity.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: README.md
+- Regression guard: Checked format links; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Documented the required DOM layers in the project root README for visual permanence lock awareness.
+
