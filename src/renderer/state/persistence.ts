@@ -14,10 +14,25 @@ export interface PersistenceAdapter {
 
 const PREFIX = 'wcf.'
 
+const memoryStore = new Map<string, string>()
+
+let isLocalStorageAvailable = false
+try {
+  const testKey = PREFIX + '__test__'
+  localStorage.setItem(testKey, '1')
+  const read = localStorage.getItem(testKey)
+  localStorage.removeItem(testKey)
+  isLocalStorageAvailable = read === '1'
+} catch {
+  isLocalStorageAvailable = false
+}
+
 export const localStorageAdapter: PersistenceAdapter = {
   get<T>(key: string): T | null {
     try {
-      const raw = localStorage.getItem(PREFIX + key)
+      const raw = isLocalStorageAvailable
+        ? localStorage.getItem(PREFIX + key)
+        : memoryStore.get(PREFIX + key) ?? null
       return raw === null ? null : (JSON.parse(raw) as T)
     } catch {
       return null
@@ -25,21 +40,34 @@ export const localStorageAdapter: PersistenceAdapter = {
   },
   set<T>(key: string, value: T): void {
     try {
-      localStorage.setItem(PREFIX + key, JSON.stringify(value))
+      const raw = JSON.stringify(value)
+      if (isLocalStorageAvailable) {
+        localStorage.setItem(PREFIX + key, raw)
+      } else {
+        memoryStore.set(PREFIX + key, raw)
+      }
     } catch {
-      // Storage full or unavailable — the app keeps working in memory.
+      // Storage full or unavailable
     }
   },
   remove(key: string): void {
     try {
-      localStorage.removeItem(PREFIX + key)
+      if (isLocalStorageAvailable) {
+        localStorage.removeItem(PREFIX + key)
+      } else {
+        memoryStore.delete(PREFIX + key)
+      }
     } catch {
       // ignore
     }
   },
   keys(): string[] {
     try {
-      return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX))
+      if (isLocalStorageAvailable) {
+        return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX))
+      } else {
+        return Array.from(memoryStore.keys())
+      }
     } catch {
       return []
     }
@@ -62,8 +90,14 @@ export function storageUsageBytes(): number {
   try {
     return persistence
       .keys()
-      .reduce((sum, k) => sum + k.length + (localStorage.getItem(k)?.length ?? 0), 0)
+      .reduce((sum, k) => {
+        const keyWithoutPrefix = k.startsWith(PREFIX) ? k.slice(PREFIX.length) : k
+        const val = persistence.get<unknown>(keyWithoutPrefix)
+        const valStr = val !== null && val !== undefined ? JSON.stringify(val) : ''
+        return sum + k.length + valStr.length
+      }, 0)
   } catch {
     return 0
   }
 }
+
