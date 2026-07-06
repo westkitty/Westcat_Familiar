@@ -67,15 +67,15 @@ export default function App(): JSX.Element {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.key !== 'Escape') return
-      setActivePanel((panel) => {
-        if (panel !== null) return null
+      if (activePanel !== null) {
+        setActivePanel(null)
+      } else if (drawerOpen) {
         setDrawerOpen(false)
-        return null
-      })
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [activePanel, drawerOpen])
 
   return (
     <div className="stage" data-mode={modeId}>

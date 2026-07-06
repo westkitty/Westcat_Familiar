@@ -43,3 +43,16 @@
 - Outcome: PASS
 - Notes: Unified the core static-analysis and packaging step into a single convenient developer entrypoint.
 
+### Iteration 3
+- Category: Accessibility
+- Problem found: Escape key handler uses a side-effect inside `setActivePanel` state updater, which violates React purity guidelines and can cause state sync glitches.
+- Intended change: Refactor the listener to explicitly check state values in a clean effect dependent on `activePanel` and `drawerOpen`.
+- Files expected: src/renderer/App.tsx
+- Risk level: Low
+- Verification plan: Run `npm run verify` and test escaping via dev smoke run.
+- Verification result: Ran `npm run verify` successfully. Verified Esc close behavior.
+- Files changed: src/renderer/App.tsx
+- Regression guard: grep checks clean, no SVG/state regression.
+- Outcome: PASS
+- Notes: Refactored Escape handler to be pure and dependent on state variables, ensuring predictable panel and drawer closure.
+
