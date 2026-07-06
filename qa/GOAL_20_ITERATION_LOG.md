@@ -173,3 +173,16 @@
 - Outcome: PASS
 - Notes: Added explicit certified security documentation in `preload.ts` after verifying contextIsolation: true, nodeIntegration: false, and narrow types.
 
+### Iteration 13
+- Category: Accessibility
+- Problem found: Summoning the command drawer leaves the keyboard focus on the familiar root container, requiring manual tab keys to reach the text input field.
+- Intended change: Add an auto-focus `useEffect` using `useRef` targeting the command input box on mount inside the `CommandDrawer` component.
+- Files expected: src/renderer/components/drawer/CommandDrawer.tsx
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test build/compiling.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/components/drawer/CommandDrawer.tsx
+- Regression guard: Checked focus behavior cleanly; no regressions.
+- Outcome: PASS
+- Notes: Directed active focus automatically to the routed command input on drawer mount, facilitating direct keyboard command entry.
+

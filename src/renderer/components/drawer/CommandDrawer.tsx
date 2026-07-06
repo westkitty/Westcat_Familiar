@@ -3,7 +3,7 @@
  * harming it (Law 2). Hosts the mode switcher, quick actions, tool
  * launchers, and the routed command line with its scarcity gate (Law 7).
  */
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   AI_COMMAND_PROMPTS,
   COMMANDS,
@@ -47,6 +47,11 @@ export function CommandDrawer({
   const [input, setInput] = useState('')
   const [pendingGate, setPendingGate] = useState<{ decision: RouterDecision; question: string } | null>(null)
   const [result, setResult] = useState<RouterResult | null>(null)
+
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const localContext = (): LocalContext => ({
     mode,
@@ -181,6 +186,7 @@ export function CommandDrawer({
         <h4 className="drawer-section-title">route a command</h4>
         <div className="router-input-row">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             placeholder="Ask something… local paths first."
