@@ -20,7 +20,14 @@ export interface AttentionInputs {
 const TIER = 'inferred' as const
 
 export function evaluateAttention(i: AttentionInputs): AttentionDecision {
-  const base = { msIdle: i.msIdle, evidenceTier: TIER }
+  // Defensive input sanitization: guard against clock drift, system time jumps, or corruption.
+  const msIdle = Math.max(0, isNaN(i.msIdle) ? 0 : i.msIdle)
+  const msSinceLastNudge = Math.max(0, isNaN(i.msSinceLastNudge) ? Infinity : i.msSinceLastNudge)
+  const nudgesThisHour = Math.max(0, isNaN(i.nudgesThisHour) ? 0 : i.nudgesThisHour)
+  const nudgeHourlyCap = Math.max(0, isNaN(i.nudgeHourlyCap) ? 0 : i.nudgeHourlyCap)
+  const nudgeCooldownMs = Math.max(0, isNaN(i.nudgeCooldownMs) ? 0 : i.nudgeCooldownMs)
+
+  const base = { msIdle, evidenceTier: TIER }
   if (i.sleeping) {
     return {
       ...base,
@@ -42,25 +49,25 @@ export function evaluateAttention(i: AttentionInputs): AttentionDecision {
       reason: `Mode profile suppresses nudges (${i.profile.proactivity}).`
     }
   }
-  if (i.nudgesThisHour >= i.nudgeHourlyCap) {
+  if (nudgesThisHour >= nudgeHourlyCap) {
     return {
       ...base,
       action: 'stay_quiet',
       reason: 'Hourly nudge budget spent. Attention is earned, not farmed.'
     }
   }
-  if (i.msSinceLastNudge < i.nudgeCooldownMs) {
+  if (msSinceLastNudge < nudgeCooldownMs) {
     return {
       ...base,
       action: 'ambient',
       reason: 'Nudge cooldown active; staying ambient.'
     }
   }
-  if (i.msIdle >= i.profile.nudgeAfterIdleMs) {
+  if (msIdle >= i.profile.nudgeAfterIdleMs) {
     return {
       ...base,
       action: 'nudge',
-      reason: `Idle ${Math.round(i.msIdle / 1000)}s ≥ ${Math.round(
+      reason: `Idle ${Math.round(msIdle / 1000)}s ≥ ${Math.round(
         i.profile.nudgeAfterIdleMs / 1000
       )}s threshold for this mode.`
     }

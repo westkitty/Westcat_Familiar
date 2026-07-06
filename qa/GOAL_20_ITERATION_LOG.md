@@ -225,3 +225,16 @@
 - Outcome: PASS
 - Notes: Documented state consistency changes inside `VISUAL_IDENTITY_LOCK.md` to ensure maintainability of the state labels.
 
+### Iteration 17
+- Category: Stability
+- Problem found: Input variables to `evaluateAttention` (`msIdle`, `msSinceLastNudge`, etc.) could potentially be negative or NaN during clock drift or system time jumps, causing scheduling abnormalities.
+- Intended change: Add robust defensive sanitization inside `evaluateAttention` to enforce that all time intervals, nudges count, and cooldown bounds are strictly non-negative.
+- Files expected: src/renderer/domain/attentionEngine.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test build/compiling.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/domain/attentionEngine.ts
+- Regression guard: Verified that no negative scheduling numbers are possible.
+- Outcome: PASS
+- Notes: Sanitized all numeric scheduling inputs in `evaluateAttention` to be >= 0, shielding the nudging state logic from external clock anomalies.
+
