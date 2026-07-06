@@ -108,3 +108,16 @@
 - Outcome: PASS
 - Notes: Implemented safe deserialization layers to prevent invalid storage payloads from causing React rendering/layout exceptions.
 
+### Iteration 8
+- Category: Accessibility
+- Problem found: The interactive `.familiar-root` element functions as a keyboard button to summon/toggle the drawer but lacks `aria-expanded` and `aria-haspopup` declarations.
+- Intended change: Pass `drawerOpen` state down to `Familiar` component, and declare `aria-expanded={drawerOpen}` and `aria-haspopup="true"` on the `.familiar-root` interactive control.
+- Files expected: src/renderer/components/familiar/Familiar.tsx, src/renderer/App.tsx
+- Risk level: Low
+- Verification plan: Run `npm run verify` to confirm typescript types and compile checks pass.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/components/familiar/Familiar.tsx, src/renderer/App.tsx
+- Regression guard: grep checks clean, no SVG/state regression.
+- Outcome: PASS
+- Notes: Enriched interactive ARIA state for the familiar component, communicating drawer expansion status cleanly.
+

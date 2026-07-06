@@ -50,10 +50,12 @@ interface DragState {
 
 export function Familiar({
   onSummon,
-  onOpenPanel
+  onOpenPanel,
+  drawerOpen
 }: {
   onSummon: () => void
   onOpenPanel: (panel: PanelId) => void
+  drawerOpen: boolean
 }): JSX.Element {
   const stateId = useFamiliarStore((s) => s.stateId)
   const position = useFamiliarStore((s) => s.position)
@@ -163,6 +165,8 @@ export function Familiar({
         onContextMenu={onContextMenu}
         role="button"
         tabIndex={0}
+        aria-expanded={drawerOpen}
+        aria-haspopup="true"
         aria-label={`Familiar — state ${stateDef.label}, mode ${mode.label}. Click to summon the command drawer.`}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

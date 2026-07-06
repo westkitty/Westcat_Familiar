@@ -82,6 +82,7 @@ export default function App(): JSX.Element {
       <Familiar
         onSummon={() => setDrawerOpen((o) => !o)}
         onOpenPanel={(p) => setActivePanel(p)}
+        drawerOpen={drawerOpen}
       />
 
       {drawerOpen ? (
