@@ -95,3 +95,16 @@
 - Outcome: PASS
 - Notes: Constrained body breathing scale dynamics to [1, 1.01] during crisis mode to align with the constitutional reduced-flourish specification.
 
+### Iteration 7
+- Category: Stability
+- Problem found: Deserialization of saved state (`position`, `flipped`) in `useFamiliarStore.ts` does not check for type validity or property corruption, risking crashes if storage holds malformed JSON.
+- Intended change: Add robust validation checks (`getSavedPosition`, `getSavedFlipped`) to parse, cast, and validate loaded storage properties before initializing the Zustand store state.
+- Files expected: src/renderer/state/useFamiliarStore.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test build/compiling.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/state/useFamiliarStore.ts
+- Regression guard: grep checks clean, no SVG/state regression.
+- Outcome: PASS
+- Notes: Implemented safe deserialization layers to prevent invalid storage payloads from causing React rendering/layout exceptions.
+

@@ -23,13 +23,38 @@ interface FamiliarStore {
   setWhisper: (w: string | null) => void
 }
 
-const savedPosition = persistence.get<FamiliarPosition>(KEYS.position)
-const savedFlipped = persistence.get<boolean>(KEYS.flipped)
+function getSavedPosition(): FamiliarPosition {
+  try {
+    const pos = persistence.get<unknown>(KEYS.position)
+    if (pos && typeof pos === 'object' && 'x' in pos && 'y' in pos) {
+      const x = Number((pos as any).x)
+      const y = Number((pos as any).y)
+      if (!isNaN(x) && !isNaN(y)) {
+        return { x, y }
+      }
+    }
+  } catch (e) {
+    // Fail silently
+  }
+  return { x: 140, y: 160 }
+}
+
+function getSavedFlipped(): boolean {
+  try {
+    const flipped = persistence.get<unknown>(KEYS.flipped)
+    if (typeof flipped === 'boolean') {
+      return flipped
+    }
+  } catch (e) {
+    // Fail silently
+  }
+  return false
+}
 
 export const useFamiliarStore = create<FamiliarStore>()((set, get) => ({
   stateId: 'idle',
-  position: savedPosition ?? { x: 140, y: 160 },
-  flipped: savedFlipped ?? false,
+  position: getSavedPosition(),
+  flipped: getSavedFlipped(),
   whisper: null,
   requestState: (to) => {
     const from = get().stateId
