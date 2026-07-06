@@ -199,3 +199,16 @@
 - Outcome: PASS
 - Notes: Implemented DOM scan validation in selfAudit.ts verifying no external CDN links are hardcoded in the document.
 
+### Iteration 15
+- Category: Visualization
+- Problem found: Standard buttons and quick action buttons do not have consistent disabled CSS styling, and routed AI actions do not disable themselves when the Fable budget is fully exhausted.
+- Intended change: Declare `disabled` on quick action buttons if budget is exhausted, and add generic `.btn:disabled` rules to `index.css`.
+- Files expected: src/renderer/components/drawer/QuickActions.tsx, src/renderer/index.css
+- Risk level: Low
+- Verification plan: Run `npm run verify` to verify typescript and build consistency.
+- Verification result: Ran `npm run verify` successfully.
+- Files changed: src/renderer/components/drawer/QuickActions.tsx, src/renderer/index.css
+- Regression guard: Checked button styling; no SVG/state regressions.
+- Outcome: PASS
+- Notes: Standardized general and quick action disabled button states in CSS, and disabled AI commands when budget is depleted.
+

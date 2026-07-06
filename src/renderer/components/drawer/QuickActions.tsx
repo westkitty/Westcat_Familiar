@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { COMMANDS } from '../../domain/commandRouter'
 import { useFamiliarStore } from '../../state/useFamiliarStore'
+import { useAttentionStore } from '../../state/useAttentionStore'
 import { continuityFirewall } from '../../engines/continuityFirewall'
 import type { ModeDef } from '../../types/mode'
 
@@ -16,6 +17,7 @@ export function QuickActions({
   mode: ModeDef
   onRunAi: (commandId: string) => void
 }): JSX.Element {
+  const fableBudget = useAttentionStore((s) => s.fableBudgetRemaining)
   const [noteOpen, setNoteOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
 
@@ -63,17 +65,22 @@ export function QuickActions({
     <div className="quick-actions">
       <h4 className="drawer-section-title">quick actions</h4>
       <div className="quick-actions-row">
-        {actions.map((cmd) => (
-          <button
-            key={cmd.id}
-            className="btn small"
-            title={cmd.description}
-            onClick={() => (cmd.kind === 'ai' ? onRunAi(cmd.id) : runLocal(cmd.id))}
-          >
-            {cmd.label}
-            {cmd.kind === 'ai' ? <span className="ai-mark" title="Routed — may cost">◆</span> : null}
-          </button>
-        ))}
+        {actions.map((cmd) => {
+          const isAi = cmd.kind === 'ai'
+          const disabled = isAi && fableBudget === 0
+          return (
+            <button
+              key={cmd.id}
+              className="btn small"
+              disabled={disabled}
+              title={disabled ? "Fable budget exhausted — routed action disabled" : cmd.description}
+              onClick={() => (isAi ? onRunAi(cmd.id) : runLocal(cmd.id))}
+            >
+              {cmd.label}
+              {isAi ? <span className="ai-mark" title="Routed — may cost">◆</span> : null}
+            </button>
+          )
+        })}
       </div>
       {noteOpen ? (
         <div className="note-form">

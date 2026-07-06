@@ -63,9 +63,11 @@ button {
   color: var(--ev-unavailable);
   background: transparent;
 }
-.btn.danger:disabled {
-  opacity: 0.4;
+.btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+  border-color: var(--line) !important;
+  color: var(--muted) !important;
 }
 
 .icon-btn {
