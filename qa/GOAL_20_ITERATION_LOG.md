@@ -160,3 +160,16 @@
 - Outcome: PASS
 - Notes: Documented the required DOM layers in the project root README for visual permanence lock awareness.
 
+### Iteration 12
+- Category: Stability
+- Problem found: Security configuration of the Electron preload script is not annotated or certified, which could lead to accidental regressions in future updates.
+- Intended change: Verify context isolation properties in `electronMain.ts` and `preload.ts`, then add explicit certifying JSDocs.
+- Files expected: src/main/preload.ts
+- Risk level: Low
+- Verification plan: Run `npm run verify` to test typescript compiling.
+- Verification result: Verified context isolation properties synchronously and ran `npm run verify` successfully.
+- Files changed: src/main/preload.ts
+- Regression guard: Checked exposed methods (getInfo, quit only); no Node leaks.
+- Outcome: PASS
+- Notes: Added explicit certified security documentation in `preload.ts` after verifying contextIsolation: true, nodeIntegration: false, and narrow types.
+

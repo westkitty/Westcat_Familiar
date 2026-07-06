@@ -1,10 +1,13 @@
 /**
  * WESTCAT Familiar — preload bridge.
  *
- * Exposes a deliberately tiny, typed surface via contextBridge.
- * No ipcRenderer leak, no Node access from the renderer.
- * Dangerous capabilities (shell, fs, network) are future seams and do
- * NOT appear here — see electronMain.ts for the seam inventory.
+ * SECURITY CERTIFICATE:
+ * - contextIsolation: true (verified in electronMain.ts)
+ * - nodeIntegration: false (verified in electronMain.ts)
+ * - Exposes a deliberately tiny, typed surface via contextBridge.
+ * - No raw ipcRenderer leak, no Node API access from the renderer, no system command shell execution.
+ * - Dangerous capabilities (shell, fs, network) are future seams and do
+ *   NOT appear here — see electronMain.ts for the seam inventory.
  */
 import { contextBridge, ipcRenderer } from 'electron'
 
