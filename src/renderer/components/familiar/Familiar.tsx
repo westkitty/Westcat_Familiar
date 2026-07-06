@@ -1,32 +1,27 @@
 /**
- * The WESTCAT Familiar — a compact stateful command-layer creature.
- * Law 1: this is the interface. Click summons the drawer, right-click
- * offers context actions, dragging moves it (position persists — and it
- * is slightly annoyed about being moved).
+ * The WESTCAT Familiar v0 — stateful command-layer (not a pet mascot).
+ * Law 1: this is the interface. The familiar appears first. Click summons
+ * the drawer. Draggable. All behavior and visuals driven by state + mode.
  *
- * WHY THERE IS NO SVG HERE (visual identity lock, see
- * docs/VISUAL_IDENTITY_LOCK.md): the familiar is deliberately built from
- * plain DOM + CSS so that every visual layer is inspectable, every look
- * is a class, and the state machine can drive appearance with nothing
- * but class/data-attribute changes. SVG character art was rejected —
- * it produced a cute mascot, and it hid the visual grammar inside path
- * data instead of the stylesheet.
+ * VISUAL IDENTITY: pure DOM + CSS layers (NO SVG, no Lottie, no external
+ * images, no canvas, no old PySide assets). See docs/VISUAL_IDENTITY_LOCK.md
  *
- * DOM LAYER STRUCTURE (all styled in styles/familiar.css):
- *   .familiar-shell            state + mode classes land here
- *     .familiar-aura           box-shadow ring; intensity via data-aura
- *     .familiar-tail           signal filament (CSS border arc)
- *     .familiar-core           dark wedge body (border-radius + shadows)
- *       .familiar-ear-left/-right   clipped divs — angular signal fins
- *       .familiar-eye-left/-right   CSS blocks; aperture via data-eyes
- *         .familiar-gaze            inner pupil bar; shifts with state
- *       .familiar-glyphs       three command ticks; pattern via data-glyphs
- *       .familiar-band         thin accent band carrying the mode color
- *     .familiar-status         live "mode · state" badge (existing UI text)
+ * REQUIRED DOM LAYERS on/inside the familiar-shell (state+mode classes here):
+ *   familiar-shell
+ *     familiar-aura
+ *     familiar-shadow
+ *     familiar-core
+ *       familiar-fin-left / familiar-fin-right
+ *       familiar-eye-left / familiar-eye-right
+ *         familiar-gaze
+ *       familiar-glyph-ring
+ *         familiar-glyph
+ *     familiar-tail
+ *   familiar-status
  *
- * STATE → CLASS: familiarStateMachine bodyClass = `state-<id>` (10 states).
- * MODE  → CLASS: modeManager poseClass = `mode-<id>` (9 modes) + data-eye.
- * All keyframes live in familiar.css and are keyed to those classes only.
+ * State classes (state-idle ... state-summoning) + mode classes (mode-*) are
+ * applied to the shell. Data attrs (data-eyes, data-aura, data-glyphs, data-eye)
+ * drive apertures/auras/glyphs per the STATE_VISUALS map.
  */
 import { useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from 'react'
@@ -188,23 +183,24 @@ export function Familiar({
           style={{ transform: flipped ? 'scaleX(-1)' : undefined }}
         >
           <div className="familiar-aura" aria-hidden="true" />
-          <div className="familiar-tail" aria-hidden="true" />
+          <div className="familiar-shadow" aria-hidden="true" />
           <div className="familiar-core" aria-hidden="true">
-            <div className="familiar-ear familiar-ear-left" />
-            <div className="familiar-ear familiar-ear-right" />
+            <div className="familiar-fin familiar-fin-left" />
+            <div className="familiar-fin familiar-fin-right" />
             <div className="familiar-eye familiar-eye-left">
               <div className="familiar-gaze" />
             </div>
             <div className="familiar-eye familiar-eye-right">
               <div className="familiar-gaze" />
             </div>
-            <div className="familiar-glyphs">
-              <span className="glyph" />
-              <span className="glyph" />
-              <span className="glyph" />
+            <div className="familiar-glyph-ring">
+              <div className="familiar-glyph" />
+              <div className="familiar-glyph" />
+              <div className="familiar-glyph" />
             </div>
             <div className="familiar-band" />
           </div>
+          <div className="familiar-tail" aria-hidden="true" />
         </div>
         <div className="familiar-status">
           <span className="status-mode" style={{ color: `var(${mode.accentVar})` }}>

@@ -1,12 +1,19 @@
-/* WESTCAT Familiar v0 — DOM/CSS visual grammar. NO SVG (see
-   docs/VISUAL_IDENTITY_LOCK.md). The creature is layered divs:
-   shell > aura / tail / core (fins, eyes, glyphs, band) > status.
+/* WESTCAT Familiar v0 — DOM/CSS visual grammar. STRICT NO SVG.
+   See docs/VISUAL_IDENTITY_LOCK.md. Command-layer creature, not mascot.
 
-   Law 3 (Motion Means State): every keyframe below is keyed to a
-   `state-<id>` class set by the state machine, or to a data-attribute
-   (data-eyes / data-aura / data-glyphs) set from the per-state visual
-   map. Modes contribute `mode-<id>` classes and the --accent color.
-   Nothing animates outside those hooks. */
+   Layers (required):
+     .familiar-shell (receives state-xxx + mode-xxx classes)
+       .familiar-aura
+       .familiar-shadow
+       .familiar-core
+         .familiar-fin-left / .familiar-fin-right
+         .familiar-eye-left / .familiar-eye-right > .familiar-gaze
+         .familiar-glyph-ring > .familiar-glyph
+       .familiar-tail
+     .familiar-status
+
+   State classes + data-* drive all appearance and motion.
+   Mode classes + data-eye modify emphasis/behavior. */
 
 .familiar-root {
   position: absolute;
@@ -57,6 +64,20 @@
   animation: aura-expand 0.9s ease-out;
 }
 
+/* ---------- shadow — depth layer under core (non-decorative) ---------- */
+.familiar-shadow {
+  position: absolute;
+  inset: 28px 22px 12px 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(6px);
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+.familiar-shell[data-aura='dim'] .familiar-shadow { opacity: 0.3; }
+.familiar-shell[data-aura='high'] .familiar-shadow { transform: translateY(3px); }
+
 /* ---------- core — the dark wedge body ---------- */
 
 .familiar-core {
@@ -74,9 +95,9 @@
   transform-origin: 50% 90%;
 }
 
-/* ---------- fins — angular clipped divs, not ears of a pet ---------- */
+/* ---------- fins — angular clipped divs (command fins, not pet ears) ---------- */
 
-.familiar-ear {
+.familiar-fin {
   position: absolute;
   top: -14px;
   width: 26px;
@@ -85,18 +106,18 @@
   border: 0;
   transition: transform 300ms ease;
 }
-.familiar-ear-left {
+.familiar-fin-left {
   left: 12px;
   clip-path: polygon(8% 100%, 30% 0%, 100% 82%);
   transform-origin: 60% 100%;
 }
-.familiar-ear-right {
+.familiar-fin-right {
   right: 12px;
   clip-path: polygon(0% 82%, 70% 0%, 92% 100%);
   transform-origin: 40% 100%;
 }
-.familiar-ear::after {
-  /* accent edge along the fin — a signal surface, not inner-ear pink */
+.familiar-fin::after {
+  /* accent edge — signal surface */
   content: '';
   position: absolute;
   inset: 0;
@@ -177,9 +198,9 @@
   animation: gaze-scan 2.6s ease-in-out infinite;
 }
 
-/* ---------- command glyphs — three status ticks, pattern via data-glyphs */
+/* ---------- command glyphs — ring + ticks. data-glyphs controls. ---------- */
 
-.familiar-glyphs {
+.familiar-glyph-ring {
   position: absolute;
   bottom: 26%;
   left: 50%;
@@ -187,7 +208,7 @@
   display: flex;
   gap: 6px;
 }
-.familiar-glyphs .glyph {
+.familiar-glyph-ring .familiar-glyph {
   width: 6px;
   height: 6px;
   background: var(--accent);
@@ -195,22 +216,22 @@
   border-radius: 1px;
   transition: opacity 250ms ease;
 }
-.familiar-shell[data-glyphs='active'] .glyph {
+.familiar-shell[data-glyphs='active'] .familiar-glyph {
   opacity: 0.9;
   animation: glyph-seq 1.2s ease-in-out infinite;
 }
-.familiar-shell[data-glyphs='active'] .glyph:nth-child(2) { animation-delay: 0.2s; }
-.familiar-shell[data-glyphs='active'] .glyph:nth-child(3) { animation-delay: 0.4s; }
-.familiar-shell[data-glyphs='reveal'] .glyph {
+.familiar-shell[data-glyphs='active'] .familiar-glyph:nth-child(2) { animation-delay: 0.2s; }
+.familiar-shell[data-glyphs='active'] .familiar-glyph:nth-child(3) { animation-delay: 0.4s; }
+.familiar-shell[data-glyphs='reveal'] .familiar-glyph {
   opacity: 0.9;
   animation: glyph-reveal 0.5s ease-out backwards;
 }
-.familiar-shell[data-glyphs='reveal'] .glyph:nth-child(2) { animation-delay: 0.12s; }
-.familiar-shell[data-glyphs='reveal'] .glyph:nth-child(3) { animation-delay: 0.24s; }
+.familiar-shell[data-glyphs='reveal'] .familiar-glyph:nth-child(2) { animation-delay: 0.12s; }
+.familiar-shell[data-glyphs='reveal'] .familiar-glyph:nth-child(3) { animation-delay: 0.24s; }
 /* locked: dim ticks with two crossed bars drawn by pseudo-elements */
-.familiar-shell[data-glyphs='locked'] .glyph { opacity: 0.25; }
-.familiar-shell[data-glyphs='locked'] .familiar-glyphs::before,
-.familiar-shell[data-glyphs='locked'] .familiar-glyphs::after {
+.familiar-shell[data-glyphs='locked'] .familiar-glyph { opacity: 0.25; }
+.familiar-shell[data-glyphs='locked'] .familiar-glyph-ring::before,
+.familiar-shell[data-glyphs='locked'] .familiar-glyph-ring::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -221,8 +242,8 @@
   background: var(--ev-unavailable);
   opacity: 0.8;
 }
-.familiar-shell[data-glyphs='locked'] .familiar-glyphs::before { transform: rotate(28deg); }
-.familiar-shell[data-glyphs='locked'] .familiar-glyphs::after { transform: rotate(-28deg); }
+.familiar-shell[data-glyphs='locked'] .familiar-glyph-ring::before { transform: rotate(28deg); }
+.familiar-shell[data-glyphs='locked'] .familiar-glyph-ring::after { transform: rotate(-28deg); }
 
 /* ---------- accent band — the mode color worn on the body ---------- */
 
@@ -295,8 +316,8 @@
 .state-alert .familiar-core {
   transform: translateY(-4px);
 }
-.state-alert .familiar-ear-left { transform: rotate(-10deg) translateY(-2px); }
-.state-alert .familiar-ear-right { transform: rotate(10deg) translateY(-2px); }
+.state-alert .familiar-fin-left { transform: rotate(-10deg) translateY(-2px); }
+.state-alert .familiar-fin-right { transform: rotate(10deg) translateY(-2px); }
 
 /* blocked: dimmed body, locked glyphs (map), motion suppressed */
 .state-blocked .familiar-core {
@@ -310,8 +331,8 @@
   transform: translateY(7px) scaleY(0.86);
   animation: core-breathe 6.5s ease-in-out infinite;
 }
-.state-sleeping .familiar-ear-left { transform: rotate(9deg) translateY(2px); }
-.state-sleeping .familiar-ear-right { transform: rotate(-9deg) translateY(2px); }
+.state-sleeping .familiar-fin-left { transform: rotate(9deg) translateY(2px); }
+.state-sleeping .familiar-fin-right { transform: rotate(-9deg) translateY(2px); }
 .state-sleeping .familiar-tail { transform: rotate(78deg) translateY(4px); }
 
 /* summoning: drawer-linked aura expansion + glyph reveal (map) */
@@ -352,6 +373,22 @@
 }
 
 /* ==================================================================
+   MODE VISUAL BEHAVIOR (Law 6)
+   Each mode class on shell modifies emphasis. Eyes already vary via
+   data-eye; here we add posture/aura/glyph weight cues.
+   ================================================================== */
+.mode-dex .familiar-core { filter: contrast(1.05) saturate(1.1); }
+.mode-dex .familiar-aura { box-shadow: 0 0 18px 4px var(--accent); }
+.mode-work .familiar-glyph-ring .familiar-glyph { opacity: 0.7; }
+.mode-work .familiar-core { transform: translateY(-1px) scaleY(1.01); }
+.mode-canon .familiar-shell { /* higher continuity emphasis via steadier */ }
+.mode-canon .familiar-glyph-ring .familiar-glyph { animation-duration: 2.4s; }
+.mode-build .familiar-glyph-ring { filter: brightness(1.15); }
+.mode-fable .familiar-aura { opacity: 0.5; } /* scarcity, less glow */
+.mode-crisis .familiar-core { filter: brightness(0.9) saturate(0.8); }
+.mode-crisis .familiar-aura { box-shadow: 0 0 12px 3px var(--accent); }
+
+/* ==================================================================
    REDUCED MOTION — the OS media query and the .rm class (set by the
    animation engine) kill every loop; poses, apertures, auras and the
    status badge still change discretely, so state stays legible.
@@ -359,12 +396,13 @@
 @media (prefers-reduced-motion: reduce) {
   .familiar-shell .familiar-core,
   .familiar-shell .familiar-aura,
-  .familiar-shell .glyph,
+  .familiar-shell .familiar-shadow,
+  .familiar-shell .familiar-glyph-ring .familiar-glyph,
   .familiar-shell .familiar-gaze {
     animation: none !important;
   }
   .familiar-shell .familiar-core,
-  .familiar-shell .familiar-ear,
+  .familiar-shell .familiar-fin,
   .familiar-shell .familiar-eye,
   .familiar-shell .familiar-tail {
     transition: none;
@@ -372,12 +410,13 @@
 }
 .familiar-shell.rm .familiar-core,
 .familiar-shell.rm .familiar-aura,
-.familiar-shell.rm .glyph,
+.familiar-shell.rm .familiar-shadow,
+.familiar-shell.rm .familiar-glyph-ring .familiar-glyph,
 .familiar-shell.rm .familiar-gaze {
   animation: none !important;
 }
 .familiar-shell.rm .familiar-core,
-.familiar-shell.rm .familiar-ear,
+.familiar-shell.rm .familiar-fin,
 .familiar-shell.rm .familiar-eye,
 .familiar-shell.rm .familiar-tail {
   transition: none;
