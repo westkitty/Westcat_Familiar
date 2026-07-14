@@ -12,6 +12,8 @@ import {
 } from '../../data/mocks/dexterExamples'
 import { EvidenceBadge } from '../common/EvidenceBadge'
 import { PanelShell } from '../common/PanelShell'
+import { EvidenceClassBadge } from '../common/EvidenceClassBadge'
+import { useGovernanceStore } from '../../state/useGovernanceStore'
 import type { EvidenceTier } from '../../types/evidence'
 
 /**
@@ -20,8 +22,8 @@ import type { EvidenceTier } from '../../types/evidence'
  */
 const STRUCTURE_SNAPSHOT: { path: string; role: string; evidenceTier: EvidenceTier }[] = [
   { path: 'src/main/electronMain.ts', role: 'frameless transparent window; nav denied', evidenceTier: 'inferred' },
-  { path: 'src/main/preload.ts', role: 'narrow typed bridge (info, quit)', evidenceTier: 'inferred' },
-  { path: 'src/renderer/domain/familiarStateMachine.ts', role: '5 states, explicit transitions', evidenceTier: 'inferred' },
+  { path: 'src/main/preload.ts', role: 'typed bridge for process info and bounded workspace operations', evidenceTier: 'inferred' },
+  { path: 'src/renderer/domain/familiarStateMachine.ts', role: '10 states, explicit transitions', evidenceTier: 'inferred' },
   { path: 'src/renderer/domain/attentionEngine.ts', role: 'pure nudge arbitration', evidenceTier: 'inferred' },
   { path: 'src/renderer/domain/commandRouter.ts', role: 'local → mock AI → gated Fable', evidenceTier: 'inferred' },
   { path: 'src/renderer/engines/packetForge.ts', role: 'high-signal context packets', evidenceTier: 'inferred' },
@@ -32,6 +34,8 @@ const STRUCTURE_SNAPSHOT: { path: string; role: string; evidenceTier: EvidenceTi
 ]
 
 export function DexterInspect({ onClose }: { onClose: () => void }): JSX.Element {
+  const provenance = useGovernanceStore((state) => state.provenance)
+
   return (
     <PanelShell
       title="Dexter Inspect"
@@ -40,6 +44,44 @@ export function DexterInspect({ onClose }: { onClose: () => void }): JSX.Element
       clinical
       bannerText="DEXTER LENS — lineage below is a mock reconstruction of the WestCat Overlay family. Not telemetry."
     >
+      <h3 className="dexter-h">COMMAND PROVENANCE (local, structured, redacted)</h3>
+      {provenance.length === 0 ? <p className="muted">No routed action has been recorded.</p> : (
+        <table className="data-table">
+          <thead>
+            <tr><th>action</th><th>decision chain</th><th>resources / failures</th><th>evidence</th></tr>
+          </thead>
+          <tbody>
+            {[...provenance].reverse().map((record) => (
+              <tr key={record.id}>
+                <td>
+                  <span className="mono">{record.id.slice(0, 18)}</span><br />
+                  <strong>{record.status}</strong> · {record.selectedEngine}<br />
+                  <span className="muted">{new Date(record.startedAt).toLocaleString()}</span>
+                </td>
+                <td>
+                  <strong>{record.normalizedRequest}</strong><br />
+                  <span>{record.routingDecision}</span><br />
+                  <span className="muted">policy: {record.permissionDecision.outcome} — {record.permissionDecision.reason}</span><br />
+                  <span className="muted">mode: {record.modeId} · familiar: {record.familiarState}</span>
+                </td>
+                <td>
+                  <div className="mono">files: {record.resourcePaths.join(', ') || 'none'}</div>
+                  <div>commands: {record.commands.length === 0 ? 'none' : record.commands.map((command) => `${command.state}: ${command.command}`).join('; ')}</div>
+                  {record.errors.length > 0 ? <div className="sev-high">failed: {record.errors.join('; ')}</div> : null}
+                  {record.fallbacks.length > 0 ? <div>fallback: {record.fallbacks.join('; ')}</div> : null}
+                  <div className="muted">approvals: {record.approvalEvents.length} · cancellations: {record.cancellationEvents.length}</div>
+                </td>
+                <td>{record.evidence.map((claim, index) => <EvidenceClassBadge key={`${record.id}-${index}`} classification={claim.classification} />)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className="muted small-note">Retention is capped at 250 actions. Full file contents and secret-shaped values are not retained.</p>
+      <button className="btn small danger" onClick={() => {
+        if (window.confirm('Delete all local command provenance?')) useGovernanceStore.getState().clearProvenance()
+      }}>Delete provenance history</button>
+
       <h3 className="dexter-h">LINEAGE</h3>
       <table className="data-table">
         <thead>

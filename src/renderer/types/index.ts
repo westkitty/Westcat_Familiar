@@ -2,7 +2,7 @@ import type { FamiliarBridge } from '../../main/preload'
 import type { EvidenceTier } from './evidence'
 
 /** Panels are secondary surfaces summoned from the familiar (Law 2). */
-export type PanelId = 'dexter' | 'stack' | 'packet' | 'audit'
+export type PanelId = 'dexter' | 'stack' | 'packet' | 'audit' | 'operations'
 
 export type CommandKind = 'local' | 'panel' | 'ai'
 

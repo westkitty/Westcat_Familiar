@@ -3,6 +3,7 @@
  * secondary citizens (Law 2): dismissible, never fullscreen, never hiding
  * the familiar.
  */
+import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { MockBanner } from './MockBanner'
 
@@ -21,18 +22,28 @@ export function PanelShell({
   bannerText?: string
   clinical?: boolean
 }): JSX.Element {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const previous = document.activeElement
+    closeRef.current?.focus()
+    return () => {
+      if (previous instanceof HTMLElement) previous.focus()
+    }
+  }, [])
+
   return (
-    <section className={clinical ? 'panel clinical' : 'panel'} role="dialog" aria-label={title}>
+    <section className={clinical ? 'panel clinical' : 'panel'} role="dialog" aria-modal="false" aria-label={title}>
       <header className="panel-header">
         <div>
           <h2>{title}</h2>
           {subtitle ? <p className="panel-subtitle">{subtitle}</p> : null}
         </div>
-        <button className="icon-btn" onClick={onClose} aria-label="Close panel" title="Close (Esc)">
+        <button ref={closeRef} className="icon-btn" onClick={onClose} aria-label="Close panel" title="Close (Esc)">
           ✕
         </button>
       </header>
-      <MockBanner text={bannerText} />
+      {bannerText !== undefined ? <MockBanner text={bannerText} /> : null}
       <div className="panel-body">{children}</div>
     </section>
   )

@@ -11,7 +11,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Plain',
     tagline: 'Baseline presence. Nothing extra.',
     accentVar: '--mode-plain',
-    familiar: { collarColorVar: '--mode-plain', eye: 'soft', poseClass: 'mode-plain', idleBias: 'idle' },
+    familiar: { accentColorVar: '--mode-plain', eye: 'soft', poseClass: 'mode-plain', idleBias: 'idle' },
     drawerCommandIds: ['stretch', 'nap', 'checkin-note', 'open-packet'],
     attention: {
       nudgeAfterIdleMs: 120_000,
@@ -24,7 +24,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Dex',
     tagline: 'Diagnostic lens. Exact and unsentimental.',
     accentVar: '--mode-dex',
-    familiar: { collarColorVar: '--mode-dex', eye: 'scan', poseClass: 'mode-dex', idleBias: 'watching' },
+    familiar: { accentColorVar: '--mode-dex', eye: 'scan', poseClass: 'mode-dex', idleBias: 'watching' },
     drawerCommandIds: ['open-dexter', 'open-stack', 'open-audit', 'open-packet'],
     attention: {
       nudgeAfterIdleMs: null,
@@ -37,7 +37,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Work',
     tagline: 'Deep work guard. Interruptions suppressed.',
     accentVar: '--mode-work',
-    familiar: { collarColorVar: '--mode-work', eye: 'sharp', poseClass: 'mode-work', idleBias: 'idle' },
+    familiar: { accentColorVar: '--mode-work', eye: 'sharp', poseClass: 'mode-work', idleBias: 'idle' },
     drawerCommandIds: ['stretch', 'nap', 'plan-next', 'open-packet'],
     attention: {
       nudgeAfterIdleMs: null,
@@ -50,7 +50,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Canon',
     tagline: 'Decisions and lore. What was ruled, and why.',
     accentVar: '--mode-canon',
-    familiar: { collarColorVar: '--mode-canon', eye: 'soft', poseClass: 'mode-canon', idleBias: 'idle' },
+    familiar: { accentColorVar: '--mode-canon', eye: 'soft', poseClass: 'mode-canon', idleBias: 'idle' },
     drawerCommandIds: ['checkin-note', 'open-dexter', 'open-packet'],
     attention: {
       nudgeAfterIdleMs: 180_000,
@@ -63,7 +63,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Build',
     tagline: 'Making things. Cheap questions, fast loops.',
     accentVar: '--mode-build',
-    familiar: { collarColorVar: '--mode-build', eye: 'wide', poseClass: 'mode-build', idleBias: 'idle' },
+    familiar: { accentColorVar: '--mode-build', eye: 'wide', poseClass: 'mode-build', idleBias: 'idle' },
     drawerCommandIds: ['plan-next', 'open-stack', 'open-packet', 'stretch'],
     attention: {
       nudgeAfterIdleMs: 120_000,
@@ -76,7 +76,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Necromancy',
     tagline: 'Graveyard duty. What died, and what it teaches.',
     accentVar: '--mode-necromancy',
-    familiar: { collarColorVar: '--mode-necromancy', eye: 'scan', poseClass: 'mode-necromancy', idleBias: 'watching' },
+    familiar: { accentColorVar: '--mode-necromancy', eye: 'scan', poseClass: 'mode-necromancy', idleBias: 'watching' },
     drawerCommandIds: ['open-dexter', 'open-audit', 'nap'],
     attention: {
       nudgeAfterIdleMs: null,
@@ -89,7 +89,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Fable',
     tagline: 'Deep reasoning stance. The budget stays visible.',
     accentVar: '--mode-fable',
-    familiar: { collarColorVar: '--mode-fable', eye: 'sharp', poseClass: 'mode-fable', idleBias: 'watching' },
+    familiar: { accentColorVar: '--mode-fable', eye: 'sharp', poseClass: 'mode-fable', idleBias: 'watching' },
     drawerCommandIds: ['plan-next', 'open-packet'],
     attention: {
       nudgeAfterIdleMs: null,
@@ -102,7 +102,7 @@ export const MODES: Record<ModeId, ModeDef> = {
     label: 'Image',
     tagline: 'Visual work. Frames and assets (seams).',
     accentVar: '--mode-image',
-    familiar: { collarColorVar: '--mode-image', eye: 'wide', poseClass: 'mode-image', idleBias: 'idle' },
+    familiar: { accentColorVar: '--mode-image', eye: 'wide', poseClass: 'mode-image', idleBias: 'idle' },
     drawerCommandIds: ['stretch', 'open-packet', 'open-stack'],
     attention: {
       nudgeAfterIdleMs: 180_000,
@@ -113,14 +113,14 @@ export const MODES: Record<ModeId, ModeDef> = {
   crisis: {
     id: 'crisis',
     label: 'Crisis',
-    tagline: 'Everything is on fire. The familiar checks in often.',
+    tagline: 'Essential actions only. Nonessential motion and interruptions suppressed.',
     accentVar: '--mode-crisis',
-    familiar: { collarColorVar: '--mode-crisis', eye: 'sharp', poseClass: 'mode-crisis', idleBias: 'watching' },
-    drawerCommandIds: ['checkin-note', 'summarize-day', 'open-stack', 'open-audit'],
+    familiar: { accentColorVar: '--mode-crisis', eye: 'sharp', poseClass: 'mode-crisis', idleBias: 'watching' },
+    drawerCommandIds: ['open-stack', 'open-audit'],
     attention: {
-      nudgeAfterIdleMs: 30_000,
-      proactivity: 'high',
-      description: 'Nudges after ~30s of stillness, capped per hour.'
+      nudgeAfterIdleMs: null,
+      proactivity: 'silent',
+      description: 'Never initiates nonessential nudges; failure and approval contracts remain inspectable.'
     }
   }
 }

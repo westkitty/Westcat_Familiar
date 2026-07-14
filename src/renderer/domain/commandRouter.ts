@@ -67,6 +67,13 @@ export const COMMANDS: Record<string, Command> = {
     description: 'Run the constitution compliance harness against live state.',
     kind: 'panel',
     panel: 'audit'
+  },
+  'open-operations': {
+    id: 'open-operations',
+    label: 'Operational controls',
+    description: 'Project sessions, unfinished work, interruption contracts, and behavioral memory.',
+    kind: 'panel',
+    panel: 'operations'
   }
 }
 

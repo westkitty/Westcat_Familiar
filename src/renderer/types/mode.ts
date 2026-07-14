@@ -24,7 +24,7 @@ export interface AttentionProfile {
 
 export interface ModeFamiliarSkin {
   /** CSS custom property carrying this mode's accent color. */
-  collarColorVar: string
+  accentColorVar: string
   /** Eye rendering vocabulary — visibly different per mode (data-eye attr). */
   eye: 'soft' | 'sharp' | 'wide' | 'scan'
   /** Mode class on the familiar shell (`mode-<id>`). */

@@ -10,6 +10,10 @@ import { useFamiliarStore } from '../../state/useFamiliarStore'
 import { continuityFirewall } from '../../engines/continuityFirewall'
 import { EvidenceBadge } from '../common/EvidenceBadge'
 import { PanelShell } from '../common/PanelShell'
+import { EvidenceClassBadge } from '../common/EvidenceClassBadge'
+import { runGovernanceAudit } from '../../domain/governanceAudit'
+import { createEvidence, createWhisper } from '../../domain/evidenceModel'
+import { useGovernanceStore } from '../../state/useGovernanceStore'
 import type { AuditReport } from '../../types/audit'
 
 function ReportTable({ report }: { report: AuditReport }): JSX.Element {
@@ -46,20 +50,27 @@ function ReportTable({ report }: { report: AuditReport }): JSX.Element {
 export function SelfAuditView({ onClose }: { onClose: () => void }): JSX.Element {
   const [report, setReport] = useState<AuditReport | null>(getLastAudit())
   const [showSamples, setShowSamples] = useState(false)
+  const findings = useGovernanceStore((state) => state.findings)
 
   const run = (): void => {
     const fam = useFamiliarStore.getState()
     if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const fresh = runSelfAudit()
+    const governance = useGovernanceStore.getState()
+    const governanceFindings = runGovernanceAudit({ state: governance, currentWhisper: fam.whisper })
+    governance.replaceFindings(governanceFindings)
     setReport(fresh)
     continuityFirewall.addSessionEvent(
       `Self-audit ran: ${fresh.passed} pass / ${fresh.warned} warn / ${fresh.failed} fail.`
     )
     fam.requestState('working')
-    fam.setWhisper(
-      fresh.failed === 0 ? 'audit clean' : `audit found ${fresh.failed} failure(s)`
-    )
+    const totalFailures = fresh.failed + governanceFindings.filter((finding) => finding.severity === 'critical' || finding.severity === 'high').length
+    fam.setWhisper(createWhisper(
+      totalFailures === 0 ? 'audit ran; no current high-severity finding' : `audit found ${totalFailures} high-severity issue(s)`,
+      createEvidence(totalFailures === 0 ? 'observed' : 'contradicted', 'The live visual and governance audit modules completed. A clean run is not a blanket compliance claim.', 'Self-Audit'),
+      { actionable: totalFailures > 0, inspectionAvailable: true }
+    ))
   }
 
   return (
@@ -78,6 +89,24 @@ export function SelfAuditView({ onClose }: { onClose: () => void }): JSX.Element
         <ReportTable report={report} />
       ) : (
         <p className="muted">No audit has run yet this install. Run one.</p>
+      )}
+
+      <h3 className="dexter-h">GOVERNANCE FINDINGS</h3>
+      <p className="muted">No finding means the modular checks found no represented violation. It does not prove universal constitutional compliance.</p>
+      {findings.length === 0 ? <p className="audit-count pass">No current governance finding.</p> : (
+        <table className="data-table">
+          <thead><tr><th>severity</th><th>law / component</th><th>evidence</th><th>remediation</th></tr></thead>
+          <tbody>
+            {findings.map((finding) => (
+              <tr key={finding.id}>
+                <td className={`mono sev-${finding.severity}`}>{finding.severity}</td>
+                <td><strong>{finding.law}</strong><br /><span>{finding.affectedComponent}</span></td>
+                <td>{finding.evidence.reason}<br /><EvidenceClassBadge classification={finding.evidence.classification} /></td>
+                <td>{finding.remediation}{finding.provenanceId === undefined ? '' : ` Action: ${finding.provenanceId}`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       <button className="btn small ghost" onClick={() => setShowSamples((s) => !s)}>

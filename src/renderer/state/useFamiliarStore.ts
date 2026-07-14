@@ -5,6 +5,8 @@
  */
 import { create } from 'zustand'
 import { canTransition } from '../domain/familiarStateMachine'
+import { createEvidence, createWhisper } from '../domain/evidenceModel'
+import type { EvidenceWhisper } from '../../shared/governance'
 import type { FamiliarPosition, FamiliarStateId } from '../types/familiar'
 import { persistence, KEYS } from './persistence'
 
@@ -12,7 +14,7 @@ interface FamiliarStore {
   stateId: FamiliarStateId
   position: FamiliarPosition
   flipped: boolean
-  whisper: string | null
+  whisper: EvidenceWhisper | null
   /** Returns false when the transition table forbids the move. */
   requestState: (to: FamiliarStateId) => boolean
   /** Live position while dragging (not persisted per-frame). */
@@ -20,15 +22,16 @@ interface FamiliarStore {
   /** Persist the final position (drag end). */
   commitPosition: (p: FamiliarPosition) => void
   setFlipped: (f: boolean) => void
-  setWhisper: (w: string | null) => void
+  setWhisper: (w: string | EvidenceWhisper | null) => void
 }
 
 function getSavedPosition(): FamiliarPosition {
   try {
     const pos = persistence.get<unknown>(KEYS.position)
     if (pos && typeof pos === 'object' && 'x' in pos && 'y' in pos) {
-      const x = Number((pos as any).x)
-      const y = Number((pos as any).y)
+      const values = pos as Record<string, unknown>
+      const x = Number(values.x)
+      const y = Number(values.y)
       if (!isNaN(x) && !isNaN(y)) {
         return { x, y }
       }
@@ -72,5 +75,22 @@ export const useFamiliarStore = create<FamiliarStore>()((set, get) => ({
     set({ flipped: f })
     persistence.set(KEYS.flipped, f)
   },
-  setWhisper: (w) => set({ whisper: w })
+  setWhisper: (w) => {
+    if (w === null) {
+      set({ whisper: null })
+      return
+    }
+
+    if (typeof w === 'string') {
+      set({
+        whisper: createWhisper(
+          w,
+          createEvidence('observed', 'A local interface action directly produced this message.', 'familiar state transition'),
+          { actionable: false, inspectionAvailable: false }
+        )
+      })
+      return
+    }
+    set({ whisper: w })
+  }
 }))

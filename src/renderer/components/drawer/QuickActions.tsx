@@ -8,6 +8,8 @@ import { COMMANDS } from '../../domain/commandRouter'
 import { useFamiliarStore } from '../../state/useFamiliarStore'
 import { useAttentionStore } from '../../state/useAttentionStore'
 import { continuityFirewall } from '../../engines/continuityFirewall'
+import { recordObservedLocalAction } from '../../domain/localActionRecorder'
+import { useModeStore } from '../../state/useModeStore'
 import type { ModeDef } from '../../types/mode'
 
 export function QuickActions({
@@ -23,19 +25,23 @@ export function QuickActions({
 
   const runLocal = (id: string): void => {
     const fam = useFamiliarStore.getState()
+    let summary = `Local action ${id} completed.`
     switch (id) {
       case 'stretch':
         if (fam.stateId === 'sleeping') fam.requestState('idle')
         fam.requestState('alert')
         fam.setWhisper('stretch!')
+        summary = 'Familiar entered the alert stretch posture.'
         break
       case 'nap':
         if (fam.stateId === 'sleeping') {
           fam.requestState('idle')
           fam.setWhisper('awake')
+          summary = 'Familiar left sleeping state.'
         } else {
           fam.requestState('sleeping')
           fam.setWhisper('napping — will not interrupt')
+          summary = 'Familiar entered sleeping state and suppresses attention.'
         }
         break
       case 'checkin-note':
@@ -44,6 +50,7 @@ export function QuickActions({
       default:
         break
     }
+    recordObservedLocalAction(COMMANDS[id]?.label ?? id, mode.id, fam.stateId, summary)
   }
 
   const saveNote = (): void => {
@@ -55,6 +62,7 @@ export function QuickActions({
     const fam = useFamiliarStore.getState()
     fam.requestState('alert')
     fam.setWhisper('noted — verified, session-only')
+    recordObservedLocalAction('Save local check-in note', useModeStore.getState().modeId, fam.stateId, 'A user-authored note was stored in session memory; note content is not copied into provenance.')
   }
 
   const actions = mode.drawerCommandIds

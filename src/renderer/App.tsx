@@ -10,11 +10,15 @@ import { DexterInspect } from './components/panels/DexterInspect'
 import { StackStatus } from './components/panels/StackStatus'
 import { ContextPacketView } from './components/panels/ContextPacketView'
 import { SelfAuditView } from './components/panels/SelfAuditView'
+import { OperationsPanel } from './components/panels/operations/OperationsPanel'
 import { getMode } from './domain/modeManager'
+import { resolveInterruption } from './domain/interruptionContracts'
+import { createEvidence, createWhisper } from './domain/evidenceModel'
 import { getLastPersistedPacket } from './engines/packetForge'
 import { useAttentionStore } from './state/useAttentionStore'
 import { useFamiliarStore } from './state/useFamiliarStore'
 import { useModeStore } from './state/useModeStore'
+import { activeProjectSession, useGovernanceStore } from './state/useGovernanceStore'
 import type { PanelId } from './types'
 import type { ContextPacket } from './types/packet'
 
@@ -49,12 +53,33 @@ export default function App(): JSX.Element {
         .getState()
         .evaluate(mode.attention, drawerOpen, fam.stateId === 'sleeping')
       if (decision.action === 'nudge') {
+        const governance = useGovernanceStore.getState()
+        const session = activeProjectSession(governance)
+        const interruption = resolveInterruption(
+          governance.interruptionContracts,
+          'routine_reminder',
+          mode.id,
+          session?.workspaceId
+        )
+
+        if (!interruption.allowed || interruption.contractId === undefined) return
+        governance.consumeInterruptionContract(interruption.contractId)
         fam.requestState('watching')
-        fam.setWhisper(decision.reason)
+        fam.setWhisper(createWhisper(
+          decision.reason,
+          createEvidence('strongly_inferred', interruption.reason, `interruption contract ${interruption.contractId}`),
+          { actionable: false, inspectionAvailable: true }
+        ))
       }
     }, ATTENTION_TICK_MS)
     return () => window.clearInterval(tick)
   }, [mode, drawerOpen])
+
+  useEffect(() => {
+    const markInterrupted = (): void => useGovernanceStore.getState().markOpenSessionsInterrupted()
+    window.addEventListener('beforeunload', markInterrupted)
+    return () => window.removeEventListener('beforeunload', markInterrupted)
+  }, [])
 
   // Whispers fade on their own.
   useEffect(() => {
@@ -105,6 +130,7 @@ export default function App(): JSX.Element {
         />
       ) : null}
       {activePanel === 'audit' ? <SelfAuditView onClose={() => setActivePanel(null)} /> : null}
+      {activePanel === 'operations' ? <OperationsPanel onClose={() => setActivePanel(null)} /> : null}
 
       <footer className="lawline" aria-hidden="true">
         local-first · everything labeled · fable is scarce · attention is earned

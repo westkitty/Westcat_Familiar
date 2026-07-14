@@ -24,6 +24,11 @@ import { ScarcityGate } from '../common/ScarcityGate'
 import { ModeSwitcher } from '../panels/ModeSwitcher'
 import { QuickActions } from './QuickActions'
 import { FABLE_SESSION_BUDGET } from '../../../shared/constants'
+import { applicableMemoryRules, canApplyDurably } from '../../domain/behavioralMemory'
+import { classifyRequestedAction, evaluateActionPolicy } from '../../domain/policyEvaluator'
+import { beginProvenance, completeProvenance } from '../../domain/provenance'
+import { createEvidence, createWhisper, evidenceClassFromLegacyTier } from '../../domain/evidenceModel'
+import { activeProjectSession, useGovernanceStore } from '../../state/useGovernanceStore'
 import type { ContextPacket } from '../../types/packet'
 import type { ModeDef } from '../../types/mode'
 import type { PanelId, RouterDecision, RouterResult } from '../../types'
@@ -45,8 +50,9 @@ export function CommandDrawer({
 }): JSX.Element {
   const fableBudget = useAttentionStore((s) => s.fableBudgetRemaining)
   const [input, setInput] = useState('')
-  const [pendingGate, setPendingGate] = useState<{ decision: RouterDecision; question: string } | null>(null)
+  const [pendingGate, setPendingGate] = useState<{ decision: RouterDecision; question: string; provenanceId: string } | null>(null)
   const [result, setResult] = useState<RouterResult | null>(null)
+  const [policyMessage, setPolicyMessage] = useState<string | null>(null)
 
   const inputRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
@@ -67,8 +73,71 @@ export function CommandDrawer({
     if (fam.stateId === 'sleeping') fam.requestState('idle')
     fam.requestState('thinking')
     const decision = routeInput(trimmed, fableBudget)
+    const governance = useGovernanceStore.getState()
+    const session = activeProjectSession(governance)
+    const actionKind = classifyRequestedAction(trimmed, decision.path)
+    const memories = applicableMemoryRules(governance.memories, {
+      workspaceId: session?.workspaceId,
+      modeId: mode.id,
+      actionKind
+    }).filter(canApplyDurably)
+    const requiredCapabilityId = session !== undefined && ['modify_project', 'destructive'].includes(actionKind)
+      ? `${session.workspaceId}:write`
+      : undefined
+    const permission = evaluateActionPolicy({
+      modeId: mode.id,
+      actionKind,
+      inspectedBeforeModify: session !== undefined,
+      hasValidationPlan: session !== undefined && session.stoppingPoint.trim() !== '',
+      userApproved: false,
+      fableJustification: decision.path === 'fable' ? trimmed : undefined,
+      requiredCapabilityId,
+      capabilities: governance.capabilities,
+      applicableMemories: memories
+    })
+    let provenance = beginProvenance({
+      request: trimmed,
+      modeId: mode.id,
+      familiarState: fam.stateId,
+      routingDecision: decision.reason,
+      permissionDecision: permission,
+      selectedEngine: decision.path,
+      resourcePaths: session === undefined ? [] : [session.workspacePath],
+      capabilityIds: requiredCapabilityId === undefined ? [] : [requiredCapabilityId],
+      appliedMemoryIds: memories.map((memory) => memory.id)
+    })
+    governance.recordProvenance(provenance)
+    if (session !== undefined) governance.linkSessionProvenance(session.id, provenance.id)
+    governance.applyMemoryRules(memories.map((memory) => memory.id))
+
+    if (permission.outcome !== 'allowed') {
+      provenance = completeProvenance(provenance, 'blocked', permission.reason)
+      governance.replaceProvenance(provenance)
+      governance.addUnfinishedWork({
+        type: 'blocked_task',
+        title: `Blocked routed action: ${trimmed.slice(0, 80)}`,
+        description: permission.reason,
+        workspaceId: session?.workspaceId,
+        provenanceId: provenance.id,
+        recoverability: 'high',
+        urgency: permission.outcome === 'requires_approval' ? 'high' : 'normal',
+        blocking: true,
+        suggestedNextAction: 'Inspect the policy decision in Dexter and satisfy the stated requirement.'
+      })
+      setPolicyMessage(permission.reason)
+      setPendingGate(null)
+      setResult(null)
+      fam.requestState('blocked')
+      fam.setWhisper(createWhisper(
+        permission.reason,
+        permission.evidence,
+        { actionable: true, inspectionAvailable: true, relatedActionId: provenance.id }
+      ))
+      return
+    }
+    setPolicyMessage(null)
     if (decision.requiresGate) {
-      setPendingGate({ decision, question: trimmed })
+      setPendingGate({ decision, question: trimmed, provenanceId: provenance.id })
       setResult(null)
       return
     }
@@ -79,6 +148,27 @@ export function CommandDrawer({
         : runMockAi(trimmed, ctx, decision)
     logSessionRoute(trimmed, decision.path)
     continuityFirewall.addSessionEvent(`Routed “${trimmed}” → ${decision.path}.`)
+    provenance = {
+      ...provenance,
+      evidence: [...provenance.evidence, createEvidence(
+      evidenceClassFromLegacyTier(res.responseTier),
+      `The routed response is classified as ${res.responseTier}.`,
+      decision.path
+      )]
+    }
+    provenance = completeProvenance(
+      provenance,
+      'succeeded',
+      `${res.responseTier}: ${res.responseText}`,
+      decision.budgetExhausted ? 'Primary Fable route unavailable because the session budget was exhausted.' : undefined,
+      decision.budgetExhausted ? 'Local mock AI seam used instead.' : undefined
+    )
+    governance.replaceProvenance(provenance)
+    fam.setWhisper(createWhisper(
+      res.responseText.length > 110 ? `${res.responseText.slice(0, 107)}…` : res.responseText,
+      provenance.evidence[provenance.evidence.length - 1] ?? createEvidence('unknown', 'Evidence record missing.', 'command router'),
+      { actionable: true, inspectionAvailable: true, relatedActionId: provenance.id }
+    ))
     setPendingGate(null)
     setResult(res)
   }
@@ -102,7 +192,19 @@ export function CommandDrawer({
     })
     setLastPacket(packet)
     logSessionRoute(pendingGate.question, 'fable')
-    setResult(runFable(packet.id, pendingGate.decision))
+    const fableResult = runFable(packet.id, pendingGate.decision)
+    setResult(fableResult)
+    const governance = useGovernanceStore.getState()
+    const provenance = governance.provenance.find((entry) => entry.id === pendingGate.provenanceId)
+
+    if (provenance !== undefined) {
+      const approved = {
+        ...provenance,
+        approvalEvents: [...provenance.approvalEvents, `${new Date().toISOString()}: user approved Fable scarcity gate`],
+        evidence: [...provenance.evidence, createEvidence('unavailable', 'Fable is an explicit future seam; no remote result was produced.', 'Fable scarcity gate')]
+      }
+      governance.replaceProvenance(completeProvenance(approved, 'succeeded', `future_seam: forged local packet ${packet.id}; no Fable call occurred.`))
+    }
     setPendingGate(null)
   }
 
@@ -116,11 +218,22 @@ export function CommandDrawer({
       requiresGate: false
     }
     logSessionRoute(pendingGate.question, 'local_mock_ai')
-    setResult(runMockAi(pendingGate.question, ctx, decision))
+    const fallbackResult = runMockAi(pendingGate.question, ctx, decision)
+    setResult(fallbackResult)
+    const governance = useGovernanceStore.getState()
+    const provenance = governance.provenance.find((entry) => entry.id === pendingGate.provenanceId)
+
+    if (provenance !== undefined) {
+      const withEvidence = {
+        ...provenance,
+        evidence: [...provenance.evidence, createEvidence('mocked', 'The user declined Fable and the explicit local mock seam responded.', 'command router fallback')]
+      }
+      governance.replaceProvenance(completeProvenance(withEvidence, 'succeeded', `mocked: ${fallbackResult.responseText}`, undefined, 'Fable gate declined; local mock AI used.'))
+    }
     setPendingGate(null)
   }
 
-  const panelCommands = mode.drawerCommandIds
+  const panelCommands = [...mode.drawerCommandIds, 'open-operations']
     .map((id) => COMMANDS[id])
     .filter((c) => c !== undefined && c.kind === 'panel')
 
@@ -199,6 +312,13 @@ export function CommandDrawer({
             Route
           </button>
         </div>
+
+        {policyMessage !== null ? (
+          <div className="policy-block" role="status">
+            <strong>Policy decision: blocked</strong>
+            <span>{policyMessage}</span>
+          </div>
+        ) : null}
 
         {pendingGate ? (
           <ScarcityGate

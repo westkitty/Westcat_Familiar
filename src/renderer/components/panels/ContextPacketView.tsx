@@ -9,6 +9,7 @@ import { continuityFirewall } from '../../engines/continuityFirewall'
 import { useAttentionStore } from '../../state/useAttentionStore'
 import { useFamiliarStore } from '../../state/useFamiliarStore'
 import { useModeStore } from '../../state/useModeStore'
+import { activeProjectSession, useGovernanceStore } from '../../state/useGovernanceStore'
 import { EvidenceBadge } from '../common/EvidenceBadge'
 import { PanelShell } from '../common/PanelShell'
 import type { ContextPacket, PacketSection } from '../../types/packet'
@@ -43,6 +44,7 @@ export function ContextPacketView({
   const [crossFirewall, setCrossFirewall] = useState(false)
   const [showRaw, setShowRaw] = useState(false)
   const [promoteDenial, setPromoteDenial] = useState<string | null>(null)
+  const [unfinishedId, setUnfinishedId] = useState<string | null>(null)
   const fableBudget = useAttentionStore((s) => s.fableBudgetRemaining)
 
   const forge = (): void => {
@@ -60,6 +62,29 @@ export function ContextPacketView({
       gatePassed: false
     })
     setLastPacket(packet)
+    if (unfinishedId !== null) {
+      useGovernanceStore.getState().completeUnfinishedWork(unfinishedId)
+      setUnfinishedId(null)
+    }
+  }
+
+  const handleQuestionChange = (value: string): void => {
+    setQuestion(value)
+
+    if (value.trim() === '' || unfinishedId !== null) return
+    const governance = useGovernanceStore.getState()
+    const session = activeProjectSession(governance)
+    const id = governance.addUnfinishedWork({
+      type: 'context_packet',
+      title: 'Incomplete context packet',
+      description: 'A packet question was started but has not been forged.',
+      workspaceId: session?.workspaceId,
+      recoverability: 'high',
+      urgency: 'normal',
+      blocking: false,
+      suggestedNextAction: 'Return to Context Packet Forge and complete or dismiss the draft.'
+    })
+    setUnfinishedId(id)
   }
 
   const sessionEvents = continuityFirewall.sessionEvents()
@@ -86,7 +111,7 @@ export function ContextPacketView({
           type="text"
           value={question}
           placeholder="Optional question to carry in the packet…"
-          onChange={(e) => setQuestion(e.target.value)}
+          onChange={(e) => handleQuestionChange(e.target.value)}
         />
         <label className="firewall-toggle" title="Reading long-term memory is logged by the continuity firewall.">
           <input

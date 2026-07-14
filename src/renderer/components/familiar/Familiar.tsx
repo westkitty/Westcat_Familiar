@@ -24,7 +24,7 @@
  * drive apertures/auras/glyphs per the STATE_VISUALS map.
  */
 import { useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from 'react'
+import type { DragEvent as ReactDragEvent, PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from 'react'
 import { useFamiliarStore } from '../../state/useFamiliarStore'
 import { useModeStore } from '../../state/useModeStore'
 import { useAttentionStore } from '../../state/useAttentionStore'
@@ -34,6 +34,13 @@ import { useFamiliarAnimation } from './FamiliarAnimator'
 import { STATE_VISUALS } from './states'
 import { continuityFirewall } from '../../engines/continuityFirewall'
 import { familiarFrameManifest } from '../../data/familiarFrameManifest'
+import { EvidenceClassBadge } from '../common/EvidenceClassBadge'
+import { OperationalSignals } from './OperationalSignals'
+import { evaluateActionPolicy } from '../../domain/policyEvaluator'
+import { beginProvenance, completeProvenance } from '../../domain/provenance'
+import { createEvidence, createWhisper } from '../../domain/evidenceModel'
+import { useGovernanceStore } from '../../state/useGovernanceStore'
+import { capabilitiesFromInspection } from '../../domain/capabilityTruth'
 import type { PanelId } from '../../types'
 
 export const SHELL_WIDTH = 132
@@ -134,6 +141,63 @@ export function Familiar({
     setMenu({ x: e.clientX, y: e.clientY })
   }
 
+  const onDrop = async (event: ReactDragEvent<HTMLDivElement>): Promise<void> => {
+    event.preventDefault()
+    const file = event.dataTransfer.files[0]
+    const bridge = window.familiarBridge
+
+    if (file === undefined || bridge === undefined) return
+    const path = bridge.getDroppedFilePath(file)
+
+    if (path === null) return
+    const governance = useGovernanceStore.getState()
+    const permission = evaluateActionPolicy({
+      modeId,
+      actionKind: 'inspect',
+      inspectedBeforeModify: false,
+      hasValidationPlan: false,
+      userApproved: true,
+      capabilities: governance.capabilities,
+      applicableMemories: []
+    })
+    let provenance = beginProvenance({
+      request: `Associate dropped workspace ${path}`,
+      modeId,
+      familiarState: stateId,
+      routingDecision: 'User dropped a bounded local filesystem item onto the familiar.',
+      permissionDecision: permission,
+      selectedEngine: 'electron_workspace_inspector',
+      resourcePaths: [path]
+    })
+    governance.recordProvenance(provenance)
+
+    try {
+      const inspection = await bridge.inspectWorkspace(path)
+      governance.addWorkspaceAssociation(inspection)
+      governance.upsertCapabilities(capabilitiesFromInspection(inspection))
+      provenance = completeProvenance(provenance, 'succeeded', `Observed and associated ${inspection.label}; no file contents were retained.`)
+      governance.replaceProvenance(provenance)
+      useFamiliarStore.getState().setWhisper(createWhisper(
+        `associated: ${inspection.label}`,
+        createEvidence('observed', 'The user dropped this item and Electron inspected bounded metadata.', 'workspace drop', { observedAt: inspection.checkedAt }),
+        { actionable: true, inspectionAvailable: true, relatedActionId: provenance.id }
+      ))
+      onOpenPanel('operations')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Dropped workspace inspection failed.'
+      governance.replaceProvenance(completeProvenance(provenance, 'failed', undefined, message))
+      governance.addUnfinishedWork({
+        type: 'failed_command',
+        title: 'Dropped workspace could not be inspected',
+        description: message,
+        recoverability: 'high',
+        urgency: 'normal',
+        blocking: false,
+        suggestedNextAction: 'Use Select and enter project from Operational controls.'
+      })
+    }
+  }
+
   const menuAction = (action: 'flip' | 'nap' | 'inspect' | 'quit'): void => {
     const fam = useFamiliarStore.getState()
     setMenu(null)
@@ -169,6 +233,11 @@ export function Familiar({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onContextMenu={onContextMenu}
+        onDragOver={(event) => {
+          event.preventDefault()
+          event.dataTransfer.dropEffect = 'link'
+        }}
+        onDrop={(event) => void onDrop(event)}
         role="button"
         tabIndex={0}
         aria-expanded={drawerOpen}
@@ -222,7 +291,20 @@ export function Familiar({
             </span>
           ) : null}
         </div>
-        {whisper ? <div className="familiar-whisper">{whisper}</div> : null}
+        {whisper ? (
+          <div
+            className={`familiar-whisper whisper-${whisper.evidence.classification}`}
+            role="status"
+            aria-label={`${whisper.message}. Evidence: ${whisper.evidence.classification}. ${whisper.evidence.reason}`}
+          >
+            <span>{whisper.message}</span>
+            <EvidenceClassBadge classification={whisper.evidence.classification} />
+          </div>
+        ) : null}
+      </div>
+
+      <div className="familiar-operational-anchor" style={{ left: position.x, top: position.y + SHELL_HEIGHT }}>
+        <OperationalSignals onOpen={() => onOpenPanel('operations')} />
       </div>
 
       {menu ? (

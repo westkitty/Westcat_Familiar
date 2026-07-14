@@ -13,6 +13,9 @@ import { useAttentionStore } from '../../state/useAttentionStore'
 import { persistence, storageUsageBytes } from '../../state/persistence'
 import { EvidenceBadge } from '../common/EvidenceBadge'
 import { PanelShell } from '../common/PanelShell'
+import { EvidenceClassBadge } from '../common/EvidenceClassBadge'
+import { capabilitiesFromInspection, capabilityStateAt } from '../../domain/capabilityTruth'
+import { activeProjectSession, useGovernanceStore } from '../../state/useGovernanceStore'
 import { FABLE_SESSION_BUDGET, NUDGE_HOURLY_CAP } from '../../../shared/constants'
 import type { BridgeInfo } from '../../../main/preload'
 import type { EvidenceTier } from '../../types/evidence'
@@ -23,6 +26,9 @@ export function StackStatus({ onClose }: { onClose: () => void }): JSX.Element {
   const fableBudget = useAttentionStore((s) => s.fableBudgetRemaining)
   const nudges = useAttentionStore((s) => s.nudgesThisHour)
   const decision = useAttentionStore((s) => s.decision)
+  const capabilities = useGovernanceStore((state) => state.capabilities)
+  const sessions = useGovernanceStore((state) => state.sessions)
+  const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -45,12 +51,30 @@ export function StackStatus({ onClose }: { onClose: () => void }): JSX.Element {
   }, [])
 
   const sessionRoutes = getSessionRouteLog()
+  const activeSession = activeProjectSession({ sessions })
+
+  const refreshCapabilities = async (): Promise<void> => {
+    if (activeSession === undefined || window.familiarBridge === undefined) {
+      setRefreshStatus('No active selected project is available for a safe recheck.')
+      return
+    }
+
+    try {
+      setRefreshStatus('Running safe local capability checks.')
+      const inspection = await window.familiarBridge.inspectWorkspace(activeSession.workspacePath)
+      useGovernanceStore.getState().upsertCapabilities(capabilitiesFromInspection(inspection))
+      setRefreshStatus(`Capability truth refreshed at ${new Date(inspection.checkedAt).toLocaleTimeString()}.`)
+    } catch (error) {
+      setRefreshStatus(error instanceof Error ? error.message : 'Capability check failed.')
+    }
+  }
 
   return (
     <PanelShell
       title="Stack Status"
       subtitle="live rows are verified; the process table is pretend"
       onClose={onClose}
+      bannerText="The capability table is based on bounded live observations. The preserved process table below is explicitly mocked."
     >
       <h3 className="dexter-h">LIVE (this very process)</h3>
       <table className="data-table">
@@ -101,6 +125,29 @@ export function StackStatus({ onClose }: { onClose: () => void }): JSX.Element {
           </tr>
         </tbody>
       </table>
+
+      <h3 className="dexter-h">CAPABILITY TRUTH</h3>
+      <button className="btn small" onClick={() => void refreshCapabilities()}>Refresh safe checks</button>
+      {refreshStatus !== null ? <p className="muted" role="status">{refreshStatus}</p> : null}
+      {capabilities.length === 0 ? <p className="muted">No project capability observations. Enter a project session first.</p> : (
+        <table className="data-table">
+          <thead><tr><th>capability</th><th>state</th><th>method / checked</th><th>evidence</th><th>remediation</th></tr></thead>
+          <tbody>
+            {capabilities.map((capability) => {
+              const currentState = capabilityStateAt(capability)
+              return (
+                <tr key={capability.id}>
+                  <td>{capability.label}</td>
+                  <td className="mono">{currentState}</td>
+                  <td>{capability.observationMethod}<br /><span className="muted">{new Date(capability.lastCheckedAt).toLocaleString()} · expires {new Date(capability.expiresAt).toLocaleTimeString()}</span></td>
+                  <td><EvidenceClassBadge classification={capability.evidence.classification} /></td>
+                  <td>{currentState === 'available' ? '—' : capability.remediationHint ?? capability.failureReason ?? 'Inspect manually.'}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
 
       <h3 className="dexter-h">PROCESS TABLE (pretend)</h3>
       <table className="data-table">

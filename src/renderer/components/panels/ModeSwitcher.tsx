@@ -7,6 +7,7 @@ import { MODE_LIST } from '../../domain/modeManager'
 import { useModeStore } from '../../state/useModeStore'
 import { useFamiliarStore } from '../../state/useFamiliarStore'
 import { continuityFirewall } from '../../engines/continuityFirewall'
+import { recordObservedLocalAction } from '../../domain/localActionRecorder'
 import type { ModeId } from '../../types/mode'
 
 export function ModeSwitcher(): JSX.Element {
@@ -20,6 +21,13 @@ export function ModeSwitcher(): JSX.Element {
     fam.requestState('alert')
     fam.setWhisper(`mode: ${id}`)
     continuityFirewall.addSessionEvent(`Mode switched to ${id}.`)
+    recordObservedLocalAction(
+      `Switch mode to ${id}`,
+      id,
+      fam.stateId,
+      `Active operational mode changed from ${modeId} to ${id}.`,
+      'switch_mode'
+    )
   }
 
   return (
