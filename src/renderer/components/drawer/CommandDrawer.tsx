@@ -24,6 +24,7 @@ import { ScarcityGate } from '../common/ScarcityGate'
 import { ModeSwitcher } from '../panels/ModeSwitcher'
 import { QuickActions } from './QuickActions'
 import { FABLE_SESSION_BUDGET } from '../../../shared/constants'
+import { nextFamiliarSequence } from '../../../shared/familiarBus'
 import type { ContextPacket } from '../../types/packet'
 import type { ModeDef } from '../../types/mode'
 import type { PanelId, RouterDecision, RouterResult } from '../../types'
@@ -48,6 +49,26 @@ export function CommandDrawer({
   const [pendingGate, setPendingGate] = useState<{ decision: RouterDecision; question: string } | null>(null)
   const [result, setResult] = useState<RouterResult | null>(null)
 
+  const publishSignal = (
+    attention: 'idle' | 'aware' | 'focused' | 'interrupted' | 'urgent',
+    reaction: 'neutral' | 'pleased' | 'warning' | 'error',
+    priority: number,
+    durationMs: number
+  ): void => {
+    useFamiliarStore.getState().publishSignal({
+      entityId: 'westcat-familiar',
+      source: 'westcat.command-router',
+      attention,
+      reaction,
+      intensity: priority >= 50 ? 0.8 : 0.5,
+      trigger: 'agent',
+      priority,
+      durationMs,
+      timestamp: Date.now(),
+      sequence: nextFamiliarSequence()
+    })
+  }
+
   const localContext = (): LocalContext => ({
     mode,
     familiarState: useFamiliarStore.getState().stateId,
@@ -60,9 +81,10 @@ export function CommandDrawer({
     if (!trimmed) return
     const fam = useFamiliarStore.getState()
     if (fam.stateId === 'sleeping') fam.requestState('idle')
-    fam.requestState('thinking')
+    publishSignal('focused', 'neutral', 30, 5000)
     const decision = routeInput(trimmed, fableBudget)
     if (decision.requiresGate) {
+      publishSignal('urgent', 'warning', 55, 8000)
       setPendingGate({ decision, question: trimmed })
       setResult(null)
       return
@@ -74,6 +96,7 @@ export function CommandDrawer({
         : runMockAi(trimmed, ctx, decision)
     logSessionRoute(trimmed, decision.path)
     continuityFirewall.addSessionEvent(`Routed “${trimmed}” → ${decision.path}.`)
+    publishSignal('aware', 'pleased', 35, 1200)
     setPendingGate(null)
     setResult(res)
   }
@@ -82,6 +105,7 @@ export function CommandDrawer({
     if (!pendingGate) return
     const att = useAttentionStore.getState()
     if (!att.spendFable()) {
+      publishSignal('interrupted', 'error', 70, 1800)
       setPendingGate(null)
       return
     }
@@ -98,6 +122,7 @@ export function CommandDrawer({
     setLastPacket(packet)
     logSessionRoute(pendingGate.question, 'fable')
     setResult(runFable(packet.id, pendingGate.decision))
+    publishSignal('aware', 'pleased', 35, 1400)
     setPendingGate(null)
   }
 
@@ -112,6 +137,7 @@ export function CommandDrawer({
     }
     logSessionRoute(pendingGate.question, 'local_mock_ai')
     setResult(runMockAi(pendingGate.question, ctx, decision))
+    publishSignal('aware', 'pleased', 30, 1200)
     setPendingGate(null)
   }
 
