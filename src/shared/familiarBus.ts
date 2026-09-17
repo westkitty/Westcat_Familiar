@@ -6,6 +6,13 @@ export type FamiliarReaction =
   | 'sleepy' | 'dizzy' | 'celebrate' | 'warning' | 'error'
 export type FamiliarTrigger = 'pointer' | 'touch' | 'audio' | 'system' | 'agent' | 'timer' | 'world'
 
+let familiarSequence = 0
+
+export function nextFamiliarSequence(): number {
+  familiarSequence += 1
+  return familiarSequence
+}
+
 export interface FamiliarSignal {
   entityId: string
   source: string
