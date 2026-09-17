@@ -56,6 +56,14 @@ export default function App(): JSX.Element {
     }
   }, [])
 
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      useFamiliarStore.getState().clearExpiredSignal()
+    }, 250)
+    return () => window.clearInterval(timer)
+  }, [])
+
   // Attention tick: the engine decides; a nudge lifts the familiar once.
   useEffect(() => {
     const tick = window.setInterval(() => {
