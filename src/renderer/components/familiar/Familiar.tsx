@@ -59,6 +59,7 @@ export function Familiar({
   const position = useFamiliarStore((s) => s.position)
   const flipped = useFamiliarStore((s) => s.flipped)
   const whisper = useFamiliarStore((s) => s.whisper)
+  const familiarSignal = useFamiliarStore((s) => s.familiarSignal)
   const modeId = useModeStore((s) => s.modeId)
   const mode = getMode(modeId)
 
@@ -180,6 +181,9 @@ export function Familiar({
           data-eyes={visual.eyes}
           data-aura={visual.aura}
           data-glyphs={visual.glyphs}
+          data-familiar-attention={familiarSignal?.attention ?? 'idle'}
+          data-familiar-reaction={familiarSignal?.reaction ?? 'neutral'}
+          data-familiar-trigger={familiarSignal?.trigger ?? 'system'}
           style={{ transform: flipped ? 'scaleX(-1)' : undefined }}
         >
           <div className="familiar-aura" aria-hidden="true" />
@@ -207,6 +211,9 @@ export function Familiar({
             {mode.label.toLowerCase()}
           </span>
           <span className="status-state">· {stateDef.label.toLowerCase()}</span>
+          {familiarSignal?.reaction && familiarSignal.reaction !== 'neutral' ? (
+            <span className="status-state">· {familiarSignal.reaction}</span>
+          ) : null}
           {reduced ? (
             <span
               className="status-rm"

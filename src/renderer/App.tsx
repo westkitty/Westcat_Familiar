@@ -15,6 +15,7 @@ import { getLastPersistedPacket } from './engines/packetForge'
 import { useAttentionStore } from './state/useAttentionStore'
 import { useFamiliarStore } from './state/useFamiliarStore'
 import { useModeStore } from './state/useModeStore'
+import { nextFamiliarSequence } from '../shared/familiarBus'
 import type { PanelId } from './types'
 import type { ContextPacket } from './types/packet'
 
@@ -32,13 +33,35 @@ export default function App(): JSX.Element {
 
   // Real interactions feed the attention engine (tier: verified).
   useEffect(() => {
-    const record = (): void => useAttentionStore.getState().recordInteraction()
+    const record = (): void => {
+      useAttentionStore.getState().recordInteraction()
+      useFamiliarStore.getState().publishSignal({
+        entityId: 'westcat-familiar',
+        source: 'westcat.interaction',
+        attention: 'aware',
+        reaction: 'curious',
+        intensity: 0.25,
+        trigger: 'pointer',
+        priority: 10,
+        durationMs: 700,
+        timestamp: Date.now(),
+        sequence: nextFamiliarSequence()
+      })
+    }
     window.addEventListener('pointerdown', record)
     window.addEventListener('keydown', record)
     return () => {
       window.removeEventListener('pointerdown', record)
       window.removeEventListener('keydown', record)
     }
+  }, [])
+
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      useFamiliarStore.getState().clearExpiredSignal()
+    }, 250)
+    return () => window.clearInterval(timer)
   }, [])
 
   // Attention tick: the engine decides; a nudge lifts the familiar once.
@@ -49,7 +72,18 @@ export default function App(): JSX.Element {
         .getState()
         .evaluate(mode.attention, drawerOpen, fam.stateId === 'sleeping')
       if (decision.action === 'nudge') {
-        fam.requestState('watching')
+        fam.publishSignal({
+          entityId: 'westcat-familiar',
+          source: 'westcat.attention',
+          attention: 'aware',
+          reaction: 'curious',
+          intensity: 0.35,
+          trigger: 'timer',
+          priority: 15,
+          durationMs: WHISPER_TTL_MS,
+          timestamp: Date.now(),
+          sequence: nextFamiliarSequence()
+        })
         fam.setWhisper(decision.reason)
       }
     }, ATTENTION_TICK_MS)

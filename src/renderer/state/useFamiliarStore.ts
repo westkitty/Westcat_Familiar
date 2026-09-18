@@ -5,6 +5,7 @@
  */
 import { create } from 'zustand'
 import { canTransition } from '../domain/familiarStateMachine'
+import { isFamiliarSignalExpired, resolveFamiliarSignal, stateForFamiliarSignal, type FamiliarSignal } from '../../shared/familiarBus'
 import type { FamiliarPosition, FamiliarStateId } from '../types/familiar'
 import { persistence, KEYS } from './persistence'
 
@@ -13,6 +14,9 @@ interface FamiliarStore {
   position: FamiliarPosition
   flipped: boolean
   whisper: string | null
+  familiarSignal: FamiliarSignal | null
+  publishSignal: (signal: FamiliarSignal) => FamiliarSignal
+  clearExpiredSignal: (now?: number) => void
   /** Returns false when the transition table forbids the move. */
   requestState: (to: FamiliarStateId) => boolean
   /** Live position while dragging (not persisted per-frame). */
@@ -31,6 +35,7 @@ export const useFamiliarStore = create<FamiliarStore>()((set, get) => ({
   position: savedPosition ?? { x: 140, y: 160 },
   flipped: savedFlipped ?? false,
   whisper: null,
+  familiarSignal: null,
   requestState: (to) => {
     const from = get().stateId
     if (from === to) return true
@@ -47,5 +52,26 @@ export const useFamiliarStore = create<FamiliarStore>()((set, get) => ({
     set({ flipped: f })
     persistence.set(KEYS.flipped, f)
   },
-  setWhisper: (w) => set({ whisper: w })
+  setWhisper: (w) => set({ whisper: w }),
+  publishSignal: (signal) => {
+    const current = get().familiarSignal
+    const resolved = resolveFamiliarSignal(current, signal, signal.timestamp)
+    set({ familiarSignal: resolved })
+
+    if (resolved === signal) {
+      const target = stateForFamiliarSignal(resolved)
+      const from = get().stateId
+      if (from !== target && canTransition(from, target)) {
+        set({ stateId: target })
+      }
+    }
+
+    return resolved
+  },
+  clearExpiredSignal: (now = Date.now()) => {
+    const current = get().familiarSignal
+    if (current && isFamiliarSignalExpired(current, now)) {
+      set({ familiarSignal: null })
+    }
+  }
 }))
