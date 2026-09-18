@@ -17,18 +17,22 @@ const SMOKE_TEST = process.env['WESTCAT_SMOKE_TEST'] === '1'
 
 async function runSmokeTest(win: BrowserWindow): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('Smoke test timed out waiting for ready-to-show')), 15000)
-    win.once('ready-to-show', () => {
+    const timeout = setTimeout(() => reject(new Error('Smoke test timed out waiting for renderer load')), 15000)
+    win.webContents.once('did-finish-load', () => {
       clearTimeout(timeout)
       resolve()
     })
   })
 
   const result = await win.webContents.executeJavaScript(`
-    (() => {
+    (async () => {
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
       const root = document.querySelector('.familiar-root')
       if (!(root instanceof HTMLElement)) throw new Error('familiar root missing')
-      root.click()
+
+      root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await wait(50)
 
       const drawer = document.querySelector('.command-drawer')
       if (!(drawer instanceof HTMLElement)) throw new Error('command drawer did not open')
@@ -36,21 +40,37 @@ async function runSmokeTest(win: BrowserWindow): Promise<void> {
       const input = drawer.querySelector('input[type="text"]')
       if (!(input instanceof HTMLInputElement)) throw new Error('router input missing')
 
-      input.value = 'what mode are we in'
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value'
+      )?.set
+      valueSetter?.call(input, 'what mode are we in')
       input.dispatchEvent(new Event('input', { bubbles: true }))
+      await wait(20)
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await wait(80)
 
-      const reaction = document.querySelector('[data-familiar-reaction]')?.getAttribute('data-familiar-reaction')
+      const semantic = document.querySelector('[data-familiar-reaction]')
+      const reaction = semantic?.getAttribute('data-familiar-reaction')
+      const attention = semantic?.getAttribute('data-familiar-attention')
       const response = document.querySelector('.router-response')?.textContent?.trim() ?? ''
       const mode = document.querySelector('.status-mode')?.textContent?.trim() ?? ''
 
-      return { drawerOpen: Boolean(drawer), reaction, response, mode }
+      return {
+        drawerOpen: Boolean(drawer),
+        reaction,
+        attention,
+        response,
+        mode
+      }
     })()
   `)
 
   if (!result.drawerOpen) throw new Error('drawer smoke assertion failed')
   if (!result.mode) throw new Error('mode status missing')
   if (!result.reaction) throw new Error('familiar semantic reaction missing')
+  if (!result.attention) throw new Error('familiar semantic attention missing')
+  if (!result.response) throw new Error('router response missing')
 
   console.log('[WESTCAT smoke]', JSON.stringify(result))
 }
