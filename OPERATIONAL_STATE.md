@@ -38,7 +38,7 @@ Local-first Electron + React + TypeScript + Vite desktop familiar where the fami
 - Branch diff against main: inspected; changes are bounded to Familiar Bus integration, docs, CI, and operational state.
 - Typecheck/build: verified in GitHub Actions on current head.
 - Runtime Electron interaction behavior: unverified in this change.
-- GitHub Actions workflow: passed on current head.
+- GitHub Actions workflow: passed for the implementation head; later state-only commits do not alter runtime code.
 - Attempted disposable Linux validation: blocked because the runner cannot resolve github.com.
 - MacBook-Air.local remote execution node: offline during this work.
 
