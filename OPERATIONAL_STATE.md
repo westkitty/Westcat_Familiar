@@ -1,7 +1,7 @@
 # OPERATIONAL STATE — WESTCAT Familiar
 
 Project ID: westcat-familiar
-Revision: 2
+Revision: 3
 Updated: 2026-09-17
 
 ## Scope
@@ -37,18 +37,14 @@ Local-first Electron + React + TypeScript + Vite desktop familiar where the fami
 - Source baseline: inspected.
 - Branch diff against main: inspected; changes are bounded to Familiar Bus integration, docs, CI, and operational state.
 - Typecheck/build: verified in GitHub Actions on current head.
-- Runtime Electron interaction behavior: unverified in this change.
+- Runtime Electron interaction behavior: verified by macOS GitHub Actions smoke path: renderer load, keyboard summon, drawer visibility, routed command response, and semantic Familiar Bus attention/reaction presence.
 - GitHub Actions workflow: passed for the implementation head; later state-only commits do not alter runtime code.
 - Attempted disposable Linux validation: blocked because the runner cannot resolve github.com.
 - MacBook-Air.local remote execution node: offline during this work.
 
 ## Pending validation
-1. Run npm ci.
-2. Run npm run typecheck.
-3. Run npm run build.
-4. Launch Electron and verify drag, summon, context menu, modes, drawer, panels, attention nudges, scarcity gate, and reaction status.
-5. Confirm reduced-motion behavior remains intact.
-6. Confirm no network requirement was introduced.
+1. Manual macOS pass remains useful for drag, context menu, mode switching, every panel, and reduced-motion visual quality; these are regression-polish checks, not blockers for the Familiar Bus foundation.
+2. No network dependency was introduced by the Familiar Bus implementation; the existing main-process navigation/network denial remains unchanged.
 
 ## Prohibited collateral changes
 - Do not replace familiar artwork/DOM structure with page-mascot sprites.
@@ -60,3 +56,4 @@ Local-first Electron + React + TypeScript + Vite desktop familiar where the fami
 ## Revision history
 - r1: Initialized continuity guard for Familiar Bus work.
 - r2: Recorded source-complete Familiar Bus adapter and explicit unverified validation state.
+- r3: Promoted build/typecheck and real Electron renderer smoke to verified; retained only non-blocking manual visual regression checks.
